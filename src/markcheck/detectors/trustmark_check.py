@@ -196,7 +196,9 @@ def check(path, data, kind, options) -> list[Finding]:
         return [Finding(NAME, LABEL, "error", f"The TrustMark library could not read this picture ({exc}).")]
     details = {"variant": f"TrustMark {variant}"}
     if not r["passed_library_check"]:
-        return [Finding(NAME, LABEL, "not_found", "No TrustMark mark found.", details=details)]
+        return [Finding(NAME, LABEL, "not_found", f"No TrustMark mark found (variant {variant} checked; marks made with "
+                        f"{', '.join(v for v in ('B', 'C', 'P', 'Q') if v != variant)} are not read).",
+                        details=details)]
 
     version, fixed = r["version"], r["bits_fixed"]
     chance = chance_by_luck(version, fixed) if r["unused_bits_zero"] and version in CHECK_BITS else 1.0
@@ -215,11 +217,17 @@ def check(path, data, kind, options) -> list[Finding]:
     })
     if r["text"] and r["text"].isprintable():
         details["payload_text"] = r["text"]
+    if fixed == 0:
+        how = "the message read back without errors"
+    else:
+        how = (f"the message read back after its error check fixed {fixed} bits, which a picture with "
+               f"no mark would match by chance less than once in a million times")
     return [Finding(
         NAME, LABEL, "found",
-        "This image carries an Adobe TrustMark hidden mark; its message passed the error check.",
+        "This image carries an Adobe TrustMark hidden mark; its message passed the error check"
+        + ("." if fixed == 0 else f" ({fixed} bits fixed)."),
         details=details,
-        proves=["the pixels contain a TrustMark message, and the message read back without errors"],
+        proves=[f"the pixels contain a TrustMark message, and {how}"],
         does_not_prove=[
             "who made the image: TrustMark is open, so anyone with the free library can add a mark",
             "that the image was made by AI; the message is usually just an ID that points to a signed "

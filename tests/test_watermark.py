@@ -281,3 +281,47 @@ def test_trustmark_skips_when_library_missing(monkeypatch):
 def test_trustmark_skips_non_images():
     [f] = trustmark_check.check(Path("a.txt"), b"hello", "text", {})
     assert f.status == "skipped"
+
+
+def test_trustmark_with_fixed_bits_is_not_called_error_free(monkeypatch):
+    """BCH_SUPER may accept a reading after fixing up to 8 bits. The output must then
+    say bits were fixed, not that the message 'read back without errors'."""
+    if importlib.util.find_spec("trustmark") is None:
+        pytest.skip("trustmark not installed")
+    monkeypatch.setattr(trustmark_check, "missing_files", lambda variant="Q": [])
+    monkeypatch.setattr(trustmark_check, "get_model", lambda variant="Q": None)
+    monkeypatch.setattr(trustmark_check, "read", lambda tm, rgb: {
+        "passed_library_check": True, "version": 0, "secret": "1" * 40, "text": "",
+        "bits_fixed": 5, "unused_bits_zero": True})
+    [f] = trustmark_check.check(Path("x.png"), _png_bytes(np.zeros((300, 300, 3), np.uint8)), "image", {})
+    assert f.status == "found"
+    words = " ".join([f.summary, *f.proves])
+    assert "without errors" not in words
+    assert "5 bits" in words
+
+
+def test_sd_comment_numbers_match_measurements():
+    """The numbers written in sd_watermark's comment must hold on the committed fixtures
+    and the generated unmarked pictures."""
+    import re
+
+    src = Path(sd_watermark.__file__).read_text()
+    block = src[src.index("# How many bits must match"):src.index("FALSE_ALARM_BUDGET =")]
+    flat = " ".join(block.replace("#", " ").split())
+    ranges = {name: (int(lo), int(hi)) for lo, hi, _, name in
+              re.findall(r"(\d+)-(\d+) of (\d+) \((SDXL|SD v2|SD v1)\)", flat)}
+    assert set(ranges) == {"SDXL", "SD v2", "SD v1"}
+    for e in MANIFEST:
+        if "sd_watermark" in e["expect"]:
+            m, _ = sd_watermark.match_rates(sd_watermark.load_bgr((WM / e["file"]).read_bytes()))[e["payload"]]
+            lo, hi = ranges[e["payload"]]
+            assert lo <= m <= hi, (e["file"], m, ranges[e["payload"]])
+    stated_worst = int(re.search(r"(\d+)% of bits", flat).group(1)) / 100
+    mk = _make_module()
+    rng = np.random.default_rng(0)
+    pics = [np.array(mk.base_image(seed, size=(512 + seed % 5 * 64, 512)))[:, :, ::-1].copy()
+            for seed in range(100, 160)]
+    pics += [rng.integers(0, 256, (512, 512, 3), dtype=np.uint8) for _ in range(20)]
+    pics += [sd_watermark.load_bgr((WM / f).read_bytes()) for f in UNMARKED]
+    worst = max(m / n for bgr in pics for m, n in sd_watermark.match_rates(bgr).values())
+    assert worst <= stated_worst, (worst, stated_worst)

@@ -1,0 +1,58 @@
+{
+  "files": [
+    {
+      "file": "adobe_photoshop_firefly_ghost.png",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "Real Adobe Photoshop + Firefly output, signed by Adobe's production certificate (on the C2PA interim trust list, not the new official list). From adobe/trustmark (MIT)."
+    },
+    {
+      "file": "adobe_firefly_label_online.jpg",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "Real Adobe Firefly output whose signed label is kept online only (cloud manifest). markcheck must say a label exists online and that it did not check it. From contentauth/c2pa-node (MIT)."
+    },
+    {
+      "file": "adobe_trustmark_q_ufo.png",
+      "expect": [
+        "trustmark"
+      ],
+      "ai": false,
+      "note": "Adobe's own TrustMark variant Q sample (message 'mysecret'). From adobe/trustmark (MIT)."
+    },
+    {
+      "file": "adobe_trustmark_softbinding_signed.jpg",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": false,
+      "note": "Adobe's TrustMark + C2PA example: test-certificate label naming a TrustMark Q soft binding. The current TrustMark Q model does not read the mark in this 2024 file (the library's own decode fails too). From adobe/trustmark (MIT)."
+    },
+    {
+      "file": "adobe_trustmark_unmarked_ufo.jpg",
+      "expect": [],
+      "ai": false,
+      "note": "Adobe's unmarked starting picture for the TrustMark samples. Control. From adobe/trustmark (MIT)."
+    },
+    {
+      "file": "sdxl_automatic1111_ostris.png",
+      "expect": [
+        "metadata"
+      ],
+      "ai": true,
+      "note": "Real SDXL 1.0 base output made with AUTOMATIC1111 v1.5.1; PNG 'parameters' text names the model. No Stable Diffusion hidden mark: AUTOMATIC1111 does not add it. From Hugging Face ostris/sdxl_10_reg (MIT)."
+    },
+    {
+      "file": "openai_gpt_image_commons_map.png",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "Real OpenAI gpt-image 2.0 output (a census map) uploaded to Wikimedia Commons with its signed label intact; signer OpenAI Media Service, certificate from Trufo's C2PA CA, on the official trust list. CC BY-SA 4.0, GMWiki2026."
+    }
+  ]
+}

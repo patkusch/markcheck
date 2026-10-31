@@ -58,10 +58,11 @@ PAYLOADS: dict[str, list[int]] = {
 # We ask for so many matching bits that a coin-toss reading would reach it
 # less than once in a million pictures, counting all six readings we make
 # (three messages, two read modes). That gives 30 of 32, 42 of 48 and
-# 98 of 136. Measured on our pictures (scripts/measure.py, tests): marked
-# files read back at 45-48 of 48 (SDXL), 29-32 of 32 (SD v2) and 114-131 of
-# 136 (SD v1); unmarked pictures and real photos stayed at or below about
-# 62% of bits for every message.
+# 98 of 136. Measured on our committed marked fixtures (checked by
+# tests/test_watermark.py::test_sd_comment_numbers_match_measurements):
+# 47-48 of 48 (SDXL), 31-32 of 32 (SD v2) and 120-121 of 136 (SD v1).
+# Unmarked fixtures plus 80 generated unmarked pictures (drawn scenes and
+# pure noise) stayed at or below 69% of bits for every message.
 FALSE_ALARM_BUDGET = 1e-6
 N_READINGS = 2 * len(PAYLOADS)
 

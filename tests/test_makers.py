@@ -49,3 +49,13 @@ def test_unknown_kind_empty():
 def test_returns_copies():
     makers_for("image", [])[0]["who"] = "changed"
     assert makers_for("image", [])[0]["who"] != "changed"
+
+
+def test_addresses_we_did_not_open_say_so_in_the_printed_note():
+    """An address we could not confirm by opening the page must say that where people read it."""
+    from markcheck import makers
+
+    entries = {id(e): e for lst in makers.BY_KIND.values() for e in lst}.values()
+    for e in entries:
+        if e["checked"].startswith(("unverified", "partly")):
+            assert any(w in e["note"] for w in ("not opened", "refused", "unverified")), e["who"]

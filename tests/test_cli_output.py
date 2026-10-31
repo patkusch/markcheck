@@ -154,3 +154,26 @@ def test_failed_check_is_flagged_in_verdict(capsys, monkeypatch):
     assert code == 2
     assert "not fully checked" in out
     assert "ValueError" not in out
+
+
+def test_skipped_check_is_flagged_in_verdict(capsys, monkeypatch):
+    """A check that did not run (here: TrustMark model files missing) must not leave the
+    file looking fully checked: the verdict says so, and so does the JSON summary."""
+    monkeypatch.setattr(trustmark_check, "missing_files", lambda variant="Q": ["decoder_Q.ckpt"])
+    code, out, _ = run(capsys, PLAIN)
+    assert code == 0
+    verdict = out.splitlines()[1:3]
+    assert "No label found" in verdict[0]
+    assert "not fully checked" in verdict[1], out
+    code, out, _ = run(capsys, PLAIN, "--json")
+    doc = json.loads(out)
+    assert doc["summary"]["files_not_fully_checked"] == 1
+    assert "not fully checked" in doc["summary"]["text"]
+    assert doc["files"][0]["all_checks_ran"] is False
+
+
+def test_not_applicable_checks_do_not_count_as_not_run(capsys):
+    code, out, _ = run(capsys, os.path.join(FIX, "controls", "note.txt"), "--json")
+    doc = json.loads(out)
+    assert doc["files"][0]["all_checks_ran"] is True
+    assert doc["summary"]["files_not_fully_checked"] == 0

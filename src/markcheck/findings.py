@@ -11,6 +11,10 @@ from typing import Literal
 
 Status = Literal["found", "not_found", "skipped", "error"]
 
+# Skip reasons that mean "this check does not apply to this kind of file".
+# Any other skip means a check that could have applied did not run.
+NOT_APPLICABLE = ("Only pictures can carry", "not used in this kind of file", "cannot be read from this file type")
+
 
 @dataclass
 class Finding:
@@ -48,11 +52,23 @@ class FileReport:
     def any_error(self) -> bool:
         return any(f.status == "error" for f in self.findings)
 
+    @property
+    def not_run(self) -> list[Finding]:
+        """Checks that could apply to this file but did not run (missing library or
+        model files, picture too small or unreadable)."""
+        return [f for f in self.findings
+                if f.status == "skipped" and not any(s in f.summary for s in NOT_APPLICABLE)]
+
+    @property
+    def fully_checked(self) -> bool:
+        return not self.any_error and not self.not_run
+
     def to_dict(self) -> dict:
         return {
             "path": self.path,
             "kind": self.kind,
             "label_found": self.any_found,
+            "all_checks_ran": self.fully_checked,
             "findings": [f.to_dict() for f in self.findings],
             "only_the_maker_can_check": self.makers,
             "notes": self.notes,

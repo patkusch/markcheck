@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import re
 
-from .findings import FileReport, Finding
+from .findings import NOT_APPLICABLE, FileReport, Finding
 
 NO_LABEL = "No label found. This does not prove it was made by a person."
 
@@ -40,6 +40,8 @@ DETAIL_LABELS: dict[str, str | None] = {
     "signature_valid": "Signature checks out",
     "changed_since_signing": "Changed since signing",
     "on_c2pa_trust_list": "Signer is on the C2PA trust list",
+    "on_interim_trust_list": "Signer is on the older interim list",
+    "hidden_mark_named_in_label": "Hidden mark the label says was added",
     "test_or_self_signed_certificate": "Test or home-made certificate",
     "earlier_labels": "Earlier labels inside",
     "label_location": "Label kept",
@@ -50,6 +52,8 @@ DETAIL_LABELS: dict[str, str | None] = {
     "tag value": "Tag value",
     "IPTC meaning": "What the IPTC tag means",
     "where in the file": "Found in",
+    "model named": "Model named in the settings",
+    "tool version": "Tool version named in the settings",
     "label value": "Label value",
     "xmp blocks": None,
     "text fields": None,
@@ -64,8 +68,6 @@ DETAIL_LABELS: dict[str, str | None] = {
     "payload_text": "Hidden message (as text)",
 }
 
-# Reasons for skipping that mean "this check does not apply to this kind of file".
-NOT_APPLICABLE = ("Only pictures can carry", "not used in this kind of file", "cannot be read from this file type")
 # Reasons that are about this computer's setup, not about the file: told once per run.
 SETUP = ("markcheck.fetch_models", "pip install", "library is not available")
 
@@ -198,6 +200,8 @@ def render_file(rep: FileReport) -> list[str]:
         lines.append(f"   {NO_LABEL}")
         if rep.any_error:
             lines.append("   Some checks could not finish, so this file was not fully checked.")
+        elif rep.not_run:
+            lines.append("   Some checks did not run on this file, so it was not fully checked.")
     for n in rep.notes:
         lines.append(f"   Note: {n}")
 
@@ -274,8 +278,12 @@ def summary_counts(reports: list[FileReport], problems: list[dict] | None = None
     found = sum(1 for r in reports if r.any_found)
     problems = problems or []
     with_errors = sum(1 for r in reports if r.any_error)
+    partial = sum(1 for r in reports if not r.fully_checked)
     text = (f"Checked {_plural(len(reports), 'file', 'files')}. A label was found in {found}. "
             f"No label was found in {len(reports) - found}.")
+    if partial:
+        text += (f" {_plural(partial, 'file was', 'files were')} not fully checked: "
+                 f"some checks did not run or could not finish.")
     if problems:
         text += f" Could not check {_plural(len(problems), 'file or folder', 'files or folders')}."
     return {
@@ -283,6 +291,7 @@ def summary_counts(reports: list[FileReport], problems: list[dict] | None = None
         "label_found_in": found,
         "no_label_in": len(reports) - found,
         "files_with_a_failed_check": with_errors,
+        "files_not_fully_checked": partial,
         "could_not_check": len(problems),
         "text": text,
     }

@@ -53,3 +53,30 @@ Each round: build, test, look for weak spots, improve. Numbers come from `script
   - A 200 MB non-media file was read whole. Non-media files are now read up to 16 MB.
 - **What changed:** jargon (C2PA, trust list, certificate, XMP, IPTC, AIGC, hidden mark, payload) is explained in brackets the first time it appears in a run. `--json` now has `exit_code`, `summary` and `problems`, and stays valid JSON on errors. A test blocks all network sockets and runs every fixture: it still works.
 - **Tests:** 125 → 244 passed (both round-2 agents combined).
+
+## Round 3 — real AI files and an honesty audit
+
+- **Built:** 7 files from real AI products in `tests/fixtures/realworld/` (OpenAI gpt-image from Wikimedia Commons, Adobe Photoshop + Firefly, an Adobe label kept online only, three Adobe TrustMark samples, an SDXL picture from AUTOMATIC1111), each with source and licence in `SOURCES.md`. A separate audit checked every sentence markcheck prints against what the code actually checked.
+- **What failed on real files:**
+  - OpenAI's real label read as "signature does not check out". Its certificate uses C2PA's own signing purpose, which the library rejects unless told to accept it. It now reads as signed and unchanged.
+  - Adobe's real certificate was called one "anyone could have made". It is on the older interim list, which C2PA froze on 1 January 2026. That list is now bundled and reported on its own line.
+  - A hidden mark named inside a signed label was dropped from the output. The SDXL model name in AUTOMATIC1111 settings was not shown. Both are shown now.
+  - Adobe's TrustMark variant P samples are missed. markcheck reads only variant Q and now says which variants it did not read.
+- **What failed in the audit:**
+  - "Unchanged since signing" printed whenever no error came back. It now needs a confirmed signature and a confirmed file match.
+  - A trusted signer on a changed file was called "not on the trust list". It now reads the library's own trust result.
+  - TrustMark said "read back without errors" even when its error check fixed bits. It now says how many bits were fixed.
+  - A comment gave a false-alarm figure the tests did not back up. A test now checks the comment's numbers.
+  - A file where a check did not run (for example TrustMark without its model files) just said "No label found". It now adds "Some checks did not run on this file".
+  - The wording test skipped several JSON fields. It now scans everything except file paths.
+  - The lead found one more: a signer reported "not on the trust list" was also told "could not check against the trust list". Fixed, with a test.
+- **Numbers (before → after):** labelled files C2PA 14 → 18, metadata 7 → 8, SD mark 7 → 7, TrustMark 5 → 6, all found; controls 51 → 52, 0 false alarms. Real files only: C2PA 4/4, metadata 1/1, TrustMark 1/1 found.
+
+| Label | original | JPEG q75, metadata kept | JPEG q75, metadata dropped | 50% resize, metadata kept | 50% resize, metadata dropped | screenshot-like |
+|---|---|---|---|---|---|---|
+| c2pa | 10/14 (4 say changed) | 0/12 (12 say changed) | 0/14 | 0/12 (12 say changed) | 0/14 | 0/14 |
+| metadata | 8/8 | 5/8 | 0/8 | 8/8 | 0/8 | 0/8 |
+| sd_watermark | 7/7 | 0/7 | 0/7 | 0/7 | 0/7 | 7/7 |
+| trustmark | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 |
+
+- **Tests:** 244 → 276 passed.

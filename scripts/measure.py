@@ -59,6 +59,7 @@ from markcheck.cli import check_file  # noqa: E402
 from markcheck.filetypes import sniff  # noqa: E402
 
 FIXTURES = ROOT / "tests" / "fixtures"
+REAL_DIR = "realworld"  # fixtures labelled by real AI products, not by us
 VARIANTS = ["original", "JPEG q75, metadata kept", "JPEG q75, metadata dropped",
             "50% resize, metadata kept", "50% resize, metadata dropped", "screenshot-like"]
 JPEG_Q = 75
@@ -82,6 +83,8 @@ NOTES = [
     "- PNG text tags (the AIGC text chunk, Stable Diffusion `parameters`) have no place in a JPEG, so a "
     "PNG-to-JPEG copy loses them even when metadata is kept.",
     "- Sound, video and PDF files are counted in the first table but not here.",
+    "- A signed label kept only online (Adobe's real `adobe_firefly_label_online.jpg`) is counted in the "
+    "first table but not here: markcheck never fetches it, so finding the pointer again would say nothing.",
 ]
 
 
@@ -118,6 +121,12 @@ def says_changed(f) -> bool:
     """A C2PA label that is in the file but no longer vouches for it: the file or the
     label changed after signing, or the signature does not check out."""
     return f.detector == "c2pa" and str(f.details.get("changed_since_signing", "no")) != "no"
+
+
+def unchecked_online(f) -> bool:
+    """A C2PA finding that only says a label is stored online (markcheck never fetches it)."""
+    return (f is not None and f.detector == "c2pa"
+            and str(f.details.get("label_location", "")).startswith("online"))
 
 
 # ---------------------------------------------------------------- metadata carried along
@@ -390,6 +399,8 @@ def measure(root: Path = FIXTURES) -> dict:
     alarm_files = []
     n_controls = 0
     survival = defaultdict(lambda: {v: _cell() for v in VARIANTS})
+    survival_real = defaultdict(lambda: {v: _cell() for v in VARIANTS})  # realworld/ files only
+    hits_real = defaultdict(lambda: [0, 0])
     per_file = []
     all_detectors: set[str] = set()
 
@@ -406,14 +417,22 @@ def measure(root: Path = FIXTURES) -> dict:
                 for d in found:
                     alarms[d] += 1
                     alarm_files.append({"file": rel, "detector": d})
+            real = rel.startswith(REAL_DIR + "/")
             for d in expect:
                 hits[d][1] += 1
                 hits[d][0] += d in found
+                if real:
+                    hits_real[d][1] += 1
+                    hits_real[d][0] += d in found
             is_image = sniff(path, path.read_bytes()[:64]) == "image"
-            if expect and is_image:
+            # A label kept online only cannot be checked offline, so "still there" would say nothing.
+            surv = [d for d in expect if not unchecked_online(found.get(d))]
+            if surv and is_image:
                 row["survival"] = {}
-                for d in expect:
+                for d in surv:
                     _count(survival[d]["original"], d, found)
+                    if real:
+                        _count(survival_real[d]["original"], d, found)
                 for vname, make in MAKERS.items():
                     try:
                         copy = make(path, tmpdir)
@@ -426,8 +445,10 @@ def measure(root: Path = FIXTURES) -> dict:
                         vfound = {}
                     row["survival"][vname] = sorted(
                         d + (" (says changed)" if says_changed(f) else "") for d, f in vfound.items())
-                    for d in expect:
+                    for d in surv:
                         _count(survival[d][vname], d, vfound)
+                        if real:
+                            _count(survival_real[d][vname], d, vfound)
             per_file.append(row)
 
     return {
@@ -440,6 +461,10 @@ def measure(root: Path = FIXTURES) -> dict:
         },
         "false_alarm_files": alarm_files,
         "survival": {d: s for d, s in sorted(survival.items())},
+        "real_files": {
+            "hits": {d: {"hits": h[0], "labelled": h[1]} for d, h in sorted(hits_real.items())},
+            "survival": {d: s for d, s in sorted(survival_real.items())},
+        },
         "per_file": per_file,
     }
 
@@ -468,6 +493,15 @@ def tables(res: dict) -> str:
         out.append(f"| {d} | " + " | ".join(_fmt(s[v]) for v in VARIANTS) + " |")
     if not res["survival"]:
         out.append("| (no labelled pictures) |" + " |" * len(VARIANTS))
+    real = res.get("real_files") or {}
+    if real.get("hits"):
+        out += ["", f"Files labelled by real AI products only ({REAL_DIR}/, see its SOURCES.md):", "",
+                "| Label | found | " + " | ".join(VARIANTS) + " |",
+                "|---|---|" + "---|" * len(VARIANTS)]
+        for d, h in real["hits"].items():
+            s = real["survival"].get(d)
+            cells = [_fmt(s[v]) for v in VARIANTS] if s else ["-"] * len(VARIANTS)
+            out.append(f"| {d} | {h['hits']}/{h['labelled']} | " + " | ".join(cells) + " |")
     out += [""] + NOTES
     return "\n".join(out)
 

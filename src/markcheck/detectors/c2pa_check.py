@@ -22,6 +22,19 @@ NAME = "c2pa"
 LABEL = "Signed label (C2PA)"
 
 TRUST_LIST = Path(__file__).resolve().parent.parent / "data" / "C2PA-TRUST-LIST.pem"
+# The older Content Credentials interim trust list (ITL), frozen on 1 January 2026.
+# Real makers such as Adobe still sign with certificates that are on it but not on the
+# new official list. C2PA asks checkers to keep the two apart, so we report it separately.
+INTERIM_ANCHORS = TRUST_LIST.parent / "INTERIM-TRUST-ANCHORS.pem"
+INTERIM_ALLOWED = TRUST_LIST.parent / "INTERIM-TRUST-ALLOWED.pem"
+
+# Soft-binding algorithm names (C2PA "c2pa.soft-binding" assertion) in plain words.
+SOFT_BINDING_NAMES = {
+    "com.adobe.trustmark": "Adobe TrustMark",
+    "com.digimarc": "Digimarc",
+    "ai.steg": "Steg.AI",
+    "io.iscc": "ISCC content code (a fingerprint, not a mark)",
+}
 
 # Kinds of file that can carry a C2PA label.
 MEDIA_KINDS = {"image", "video", "audio", "pdf"}
@@ -31,6 +44,19 @@ OFFLINE_VERIFY = {
     "remote_manifest_fetch": False,  # never download a label stored on the web
     "ocsp_fetch": False,             # never ask a certificate server about revocation
 }
+
+# Certificate purposes (EKUs) a C2PA signing certificate may carry. Without this list the
+# library rejects certificates that use the C2PA claim-signing purpose, which real signers
+# do (OpenAI's 2026 certificate from Trufo's C2PA CA, for one), and reports them as invalid.
+# Same list as the Content Credentials verify site's store.cfg (contentauth/verify-site, Apache-2.0).
+SIGNING_PURPOSES = "\n".join([
+    "//id-kp-emailProtection", "1.3.6.1.5.5.7.3.4",
+    "//id-kp-documentSigning", "1.3.6.1.5.5.7.3.36",
+    "//id-kp-timeStamping", "1.3.6.1.5.5.7.3.8",
+    "//id-kp-OCSPSigning", "1.3.6.1.5.5.7.3.9",
+    "// MS C2PA Signing", "1.3.6.1.4.1.311.76.59.1.9",
+    "// c2pa-claim_signing OID", "1.3.6.1.4.1.62558.2.1",
+])
 
 MIME = {
     ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp",
@@ -67,6 +93,10 @@ LABEL_CHANGED_CODES = {"assertion.hashedURI.mismatch", "assertion.missing", "cla
                        "assertion.cloudData.hardBinding"}
 SIGNATURE_BAD_CODES = {"claimSignature.mismatch", "claimSignature.missing", "signingCredential.invalid",
                        "signingCredential.revoked"}
+# Success codes we need before saying "unchanged since signing": the library must have
+# confirmed both the signature and a hash that ties the label to the file's bytes.
+SIGNATURE_OK_CODE = "claimSignature.validated"
+FILE_HASH_MATCH = re.compile(r"^assertion\.(dataHash|bmffHash|boxesHash|collectionHash)\.match$")
 
 
 # ---------- reading ----------
@@ -79,10 +109,45 @@ def _context(extra_anchors: str | None = None):
     anchors = TRUST_LIST.read_text() if TRUST_LIST.is_file() else ""
     if extra_anchors:
         anchors = anchors + "\n" + extra_anchors
-    cfg = {"verify": dict(OFFLINE_VERIFY, verify_trust=bool(anchors))}
+    cfg = {"verify": dict(OFFLINE_VERIFY, verify_trust=bool(anchors)),
+           "trust": {"trust_config": SIGNING_PURPOSES}}
     if anchors:
-        cfg["trust"] = {"trust_anchors": anchors}
+        cfg["trust"]["trust_anchors"] = anchors
     return c2pa.Context.from_dict(cfg)
+
+
+@lru_cache(maxsize=1)
+def _interim_context():
+    """Offline context that trusts only the frozen interim list, or None if it is not installed."""
+    import c2pa
+
+    if not INTERIM_ANCHORS.is_file():
+        return None
+    trust = {"trust_anchors": INTERIM_ANCHORS.read_text(), "trust_config": SIGNING_PURPOSES}
+    if INTERIM_ALLOWED.is_file():
+        trust["allowed_list"] = INTERIM_ALLOWED.read_text()
+    return c2pa.Context.from_dict({"verify": dict(OFFLINE_VERIFY, verify_trust=True), "trust": trust})
+
+
+def _on_interim_list(fmt: str | None, data: bytes) -> bool | None:
+    """True/False if the signer chains to the interim list; None if that could not be checked."""
+    import c2pa
+
+    ctx = _interim_context()
+    if ctx is None:
+        return None
+    try:
+        reader = c2pa.Reader.try_create(fmt, io.BytesIO(data), None, ctx)
+        if reader is None:
+            return None
+        with reader:
+            st = json.loads(reader.json())
+    except Exception:
+        return None
+    codes = [f.get("code") for f in _codes(st)]
+    if "signingCredential.untrusted" in codes:
+        return False
+    return st.get("validation_state") == "Trusted" or None
 
 
 def _has_c2pa_bytes(data: bytes) -> bool:
@@ -107,6 +172,7 @@ def inspect_bytes(path: Path, data: bytes, kind: str, extra_anchors: str | None 
 
     ctx = _context(extra_anchors)
     store = None
+    used_fmt = None
     last_exc: Exception | None = None
     for fmt in (_mime(path), None):  # first the file name's type, then let c2pa work it out
         try:
@@ -119,6 +185,7 @@ def inspect_bytes(path: Path, data: bytes, kind: str, extra_anchors: str | None 
                     cr = json.loads(reader.crjson())
                 except Exception:
                     cr = {}
+            used_fmt = fmt
             break
         except Exception as exc:
             last_exc = exc
@@ -126,7 +193,11 @@ def inspect_bytes(path: Path, data: bytes, kind: str, extra_anchors: str | None 
                 break
     if store is None:
         return _from_read_error(last_exc, data)
-    return _explain(store, cr, trust_checked=TRUST_LIST.is_file() or bool(extra_anchors))
+    trust_checked = TRUST_LIST.is_file() or bool(extra_anchors)
+    interim = None
+    if trust_checked and "signingCredential.untrusted" in [f.get("code") for f in _codes(store)]:
+        interim = _on_interim_list(used_fmt, data)
+    return _explain(store, cr, trust_checked=trust_checked, interim=interim)
 
 
 def _not_found() -> Finding:
@@ -169,6 +240,17 @@ def _damaged(msg: str) -> Finding:
 
 
 # ---------- explaining ----------
+
+def _success_codes(store: dict) -> list[str]:
+    res = (store.get("validation_results") or {}).get("activeManifest") or {}
+    return [s.get("code", "") for s in res.get("success") or [] if isinstance(s, dict)]
+
+
+def _explained(code: str) -> bool:
+    """Failure codes whose meaning we already report. Anything else blocks 'unchanged'."""
+    return bool(FILE_HASH_CODES.match(code) or code in LABEL_CHANGED_CODES or code in SIGNATURE_BAD_CODES
+                or code.startswith(("claimSignature.", "signingCredential.", "timeStamp.")))
+
 
 def _codes(store: dict) -> list[dict]:
     res = (store.get("validation_results") or {}).get("activeManifest") or {}
@@ -249,7 +331,26 @@ def _name(d: dict) -> str:
     return cn or org or ""
 
 
-def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
+def _soft_bindings(manifest: dict) -> list[str]:
+    """Hidden marks (watermarks) the label says were put into the content ("soft bindings")."""
+    out: list[str] = []
+    for a in manifest.get("assertions") or []:
+        if not str(a.get("label", "")).startswith("c2pa.soft-binding"):
+            continue
+        alg = str((a.get("data") or {}).get("alg") or "").strip()
+        if not alg:
+            continue
+        name, variant = SOFT_BINDING_NAMES.get(alg), ""
+        if name is None and "." in alg:
+            base, _, variant = alg.rpartition(".")
+            name = SOFT_BINDING_NAMES.get(base)
+        text = (f"{name} (variant {variant})" if name and variant else name) or f"a hidden mark called '{alg}'"
+        if text not in out:
+            out.append(text)
+    return out
+
+
+def _explain(store: dict, cr: dict, trust_checked: bool, interim: bool | None = None) -> Finding:
     label = store.get("active_manifest")
     manifests = store.get("manifests") or {}
     m = manifests.get(label) or {}
@@ -269,11 +370,16 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
     sig_bad = any(c in SIGNATURE_BAD_CODES or c.startswith("claimSignature.") and c != "claimSignature.insideValidity"
                   for c in codes)
     expired = "signingCredential.expired" in codes
+    success = _success_codes(store)
+    sig_ok = not sig_bad and SIGNATURE_OK_CODE in success
+    hash_ok = any(FILE_HASH_MATCH.match(c) for c in success)
+    unexplained = [c for c in codes if not _explained(c)]
+    unchanged = sig_ok and hash_ok and not unexplained and not file_changed and not label_changed
 
     state = store.get("validation_state")
     if not trust_checked:
         on_list = "not checked (the trust list is not installed)"
-    elif state == "Trusted":
+    elif state == "Trusted" or "signingCredential.trusted" in success:
         on_list = "yes"
     elif "signingCredential.untrusted" in codes:
         on_list = "no"
@@ -295,6 +401,7 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
 
     agents = _agents(m)
     tool = _generator(m)
+    marks = _soft_bindings(m)
 
     details: dict = {
         "signed_by": signer,
@@ -305,12 +412,17 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
         "source_type": "; ".join(t for t, _ in meanings) if meanings else None,
         "says_made_with_ai": ai_text,
         "earlier_label_says_ai": "yes" if earlier_ai else None,
-        "signature_valid": "no" if sig_bad else "yes",
+        "signature_valid": "no" if sig_bad else "yes" if sig_ok else "not confirmed",
         "changed_since_signing": ("yes: the file's content no longer matches the label" if file_changed
                                   else "yes: parts of the label itself were changed" if label_changed
                                   else "cannot tell: the signature does not check out" if sig_bad
-                                  else "no"),
+                                  else "no" if unchanged
+                                  else "not confirmed: the checks that tie the label to this file did not all pass"),
         "on_c2pa_trust_list": on_list,
+        "on_interim_trust_list": (None if on_list != "no" or interim is None
+                                  else "yes: on the older interim list of Content Credentials signers, "
+                                       "which C2PA froze on 1 January 2026" if interim else "no"),
+        "hidden_mark_named_in_label": ", ".join(marks) if marks else None,
         "test_or_self_signed_certificate": "yes" if (self_signed or test_cert) else None,
         "earlier_labels": len(manifests) - 1 if len(manifests) > 1 else None,
         "problems": "; ".join(f"{f.get('code')} ({f.get('explanation')})" for f in fails
@@ -325,8 +437,11 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
         summary = f"Signed by {signer}, but the file was changed after signing."
     elif label_changed:
         summary = f"Signed by {signer}, but the label was changed after signing."
-    else:
+    elif unchanged:
         summary = f"Signed by {signer}; unchanged since signing."
+    else:
+        summary = (f"A signed label naming {signer} is present, but markcheck could not confirm "
+                   f"that the signature and the file still match it.")
     if ai_kind == "made":
         summary += " The label says it was made with AI."
     elif ai_kind == "edited":
@@ -340,8 +455,15 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
     if sig_bad:
         proves.append("The file carries a signed label, but the signature does not match it.")
         not_proves.append("Who made the label: with a broken signature the signer's name cannot be relied on.")
+    elif not unchanged and not (file_changed or label_changed):
+        proves.append("The file carries a signed label.")
+        not_proves.append("Who signed it or that the file is unchanged since signing: markcheck could not "
+                          "confirm the signature and the file's match with the label.")
     else:
-        proves.append(f"Whoever holds the signing key for the certificate named '{signer}' signed this label.")
+        if sig_ok:
+            proves.append(f"Whoever holds the signing key for the certificate named '{signer}' signed this label.")
+        else:
+            not_proves.append("Who signed it: markcheck could not confirm the signature.")
         if file_changed or label_changed:
             proves.append("The file or its label was changed after signing, so the label no longer "
                           "describes these exact bytes.")
@@ -350,9 +472,19 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
             proves.append("The file has not changed since it was signed.")
         if ai_kind:
             proves.append("The signer stated in the label that AI was used.")
-    if on_list != "yes":
+    if on_list == "no" and interim:
+        not_proves.append("That the signer passed the current C2PA checks. The certificate is not on the official "
+                          "C2PA trust list. It is on the older interim list, which C2PA froze on 1 January 2026 "
+                          "and asks checkers to keep apart from the official one.")
+    elif on_list == "no":
         not_proves.append("That the signer is who the certificate name says. This certificate is not on the "
                           "official C2PA trust list, so anyone could have made a certificate with this name.")
+    elif on_list != "yes":
+        not_proves.append("That the signer is who the certificate name says. markcheck could not check this "
+                          "certificate against the official C2PA trust list.")
+    if marks:
+        not_proves.append("That the hidden mark the label names is in the pixels. This line only repeats the "
+                          "label's claim; markcheck's separate hidden-mark checks say whether a mark was read.")
     if self_signed or test_cert:
         not_proves.append("Anything about who actually made the file: this is a test or self-signed certificate, "
                           "which anyone can create.")

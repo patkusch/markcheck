@@ -249,3 +249,64 @@ def test_cli_json_has_c2pa_details(capsys):
 def test_check_file_runs_all_detectors_without_error():
     rep = check_file(C2PA_DIR / "ai_generated.png")
     assert rep.any_found
+
+
+# ---------- round 3: claims must match what was actually checked ----------
+
+def _store(path: Path, extra_anchors: str | None = None) -> tuple[dict, dict]:
+    import c2pa
+
+    data = path.read_bytes()
+    r = c2pa.Reader.try_create(c2pa_check._mime(path), io.BytesIO(data), None,
+                               c2pa_check._context(extra_anchors))
+    with r:
+        return json.loads(r.json()), json.loads(r.crjson())
+
+
+def test_trusted_signer_on_changed_file_is_not_called_untrusted():
+    """A file changed after signing makes the overall state 'Invalid', but the signer
+    can still be on the trust list. markcheck must not then say it is not on the list."""
+    f = run(C2PA_DIR / "changed_after_signing.jpg", extra_anchors=TEST_ROOT)
+    assert f.details["changed_since_signing"].startswith("yes")
+    assert f.details["on_c2pa_trust_list"] == "yes"
+    assert not any("not on the official C2PA trust list" in s for s in f.does_not_prove)
+
+
+def test_trust_list_not_decided_is_not_called_not_on_list():
+    store, cr = _store(C2PA_DIR / "ai_generated.jpg")
+    res = store["validation_results"]["activeManifest"]
+    res["failure"] = [c for c in res["failure"] if c["code"] != "signingCredential.untrusted"]
+    store["validation_state"] = "Valid"
+    f = c2pa_check._explain(store, cr, trust_checked=True)
+    assert f.details["on_c2pa_trust_list"] != "no"
+    assert not any("is not on the" in s for s in f.does_not_prove)
+
+
+def test_unchanged_needs_positive_hash_and_signature_checks():
+    """'Unchanged since signing' only when the library reported a matching file hash
+    and a validated signature, not merely when it reported no failure."""
+    store, cr = _store(C2PA_DIR / "ai_generated.jpg")
+    store["validation_results"]["activeManifest"]["success"] = []
+    f = c2pa_check._explain(store, cr, trust_checked=True)
+    assert "unchanged since signing" not in f.summary
+    assert f.details["changed_since_signing"] != "no"
+    assert f.details["signature_valid"] != "yes"
+    assert "The file has not changed since it was signed." not in f.proves
+
+
+def test_unknown_failure_code_blocks_unchanged():
+    store, cr = _store(C2PA_DIR / "ai_generated.jpg")
+    store["validation_results"]["activeManifest"]["failure"].append(
+        {"code": "general.error", "explanation": "something went wrong"})
+    f = c2pa_check._explain(store, cr, trust_checked=True)
+    assert "unchanged since signing" not in f.summary
+    assert f.details["changed_since_signing"] != "no"
+
+
+def test_changed_file_without_validated_signature_does_not_vouch_for_signer():
+    store, cr = _store(C2PA_DIR / "changed_after_signing.jpg")
+    res = store["validation_results"]["activeManifest"]
+    res["success"] = [c for c in res["success"] if not c["code"].startswith("claimSignature.")]
+    f = c2pa_check._explain(store, cr, trust_checked=True)
+    assert f.details["signature_valid"] != "yes"
+    assert not any(s.startswith("Whoever holds") for s in f.proves)

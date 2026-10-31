@@ -20,3 +20,22 @@ source above and update the date, commit and checksum here.
 Being on the list is not a statement that a picture is accurate. Not being on it
 does not mean a label is forged: some real makers use certificates from older
 lists or have not joined yet.
+
+## INTERIM-TRUST-ANCHORS.pem and INTERIM-TRUST-ALLOWED.pem
+
+The older Content Credentials interim trust list (ITL): root certificates
+(anchors) and individual signing certificates (allowed list). C2PA froze it on
+1 January 2026 and replaced it with the official list above. Real makers still
+sign with certificates on it; for example Adobe's Photoshop and Firefly
+certificate in 2025 chains to it but not to the official list. markcheck reports
+it on a separate line ("on the older interim list"), as C2PA asks checkers to
+keep the two apart, and only checks it when the official list says no.
+
+- Source: https://github.com/contentauth/verify-site/tree/main/static/trust
+  (anchors.pem and allowed.pem, renamed)
+- Downloaded: 2026-10-31, repository commit 83b2e30684086a62e132f5d4c148abd0151e9486
+- SHA-256: anchors db57e50b9bd4e4c786cbb91f38fd85e2af6a9d5412438a8cddcc42688df07ae5,
+  allowed dfe328032e56f98b83f27f48a3642314124568b9f71ff471dffabf9b307c65d5
+- Licence: Apache License 2.0 (the verify-site repository's licence),
+  https://www.apache.org/licenses/LICENSE-2.0 . Copyright Adobe. Redistributed unchanged.
+- About the freeze: https://opensource.contentauthenticity.org/docs/conformance/trust-lists

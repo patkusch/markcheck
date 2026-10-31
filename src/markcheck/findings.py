@@ -38,6 +38,7 @@ class FileReport:
     kind: str                # "image", "video", "audio", "pdf", "text", "other"
     findings: list[Finding] = field(default_factory=list)
     makers: list[dict] = field(default_factory=list)  # "only the maker can check this" entries
+    notes: list[str] = field(default_factory=list)    # plain-English notes about how the file was read
 
     @property
     def any_found(self) -> bool:
@@ -54,4 +55,5 @@ class FileReport:
             "label_found": self.any_found,
             "findings": [f.to_dict() for f in self.findings],
             "only_the_maker_can_check": self.makers,
+            "notes": self.notes,
         }

@@ -1,0 +1,2 @@
+Reading list: C2PA content credentials, IPTC digital source type,
+trainedAlgorithmicMedia, TrustMark, invisible-watermark (dwtDct).

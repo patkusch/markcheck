@@ -10,6 +10,14 @@ What it does:
 4. Changes a few pixel bytes in one signed copy, so the checker can show
    that it reports "changed after signing".
 5. Saves an unsigned copy as a control.
+6. Signs an AI label onto more file types the c2pa Builder supports: WebP,
+   GIF, TIFF, WAV sound, MP4 video and PDF (each with an unsigned control).
+   A type the library or this computer cannot make is skipped with a message.
+
+Pictures and test certificates come from fixed seeds, key numbers and
+dates, so every run makes the same pictures and certificates. Signed files
+still differ byte for byte between runs (each signature and label ID is
+fresh), but they say the same things.
 
 Run from the repo root:  .venv/bin/python scripts/make_fixtures_c2pa.py
 The output is committed, so tests never need to run this.
@@ -19,7 +27,11 @@ from __future__ import annotations
 import datetime as dt
 import io
 import json
+import math
 import random
+import struct
+import tempfile
+import wave
 from pathlib import Path
 
 import c2pa
@@ -76,12 +88,71 @@ def encode(img: Image.Image, fmt: str) -> bytes:
     return buf.getvalue()
 
 
+def tiny_wav() -> bytes:
+    """Half a second of a quiet 440 Hz tone, 8 kHz mono."""
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(8000)
+        w.writeframes(b"".join(struct.pack("<h", int(3000 * math.sin(2 * math.pi * 440 * i / 8000)))
+                               for i in range(4000)))
+    return buf.getvalue()
+
+
+def tiny_mp4(tmp: Path) -> bytes | None:
+    """One second of 64x64 video (10 frames fading from dark to light), via OpenCV."""
+    try:
+        import cv2
+        import numpy as np
+    except ImportError:
+        return None
+    p = tmp / "tiny.mp4"
+    vw = cv2.VideoWriter(str(p), cv2.VideoWriter_fourcc(*"mp4v"), 10, (64, 64))
+    if not vw.isOpened():
+        return None
+    for i in range(10):
+        vw.write(np.full((64, 64, 3), 20 + i * 20, np.uint8))
+    vw.release()
+    return p.read_bytes() if p.is_file() and p.stat().st_size else None
+
+
+def tiny_pdf() -> bytes:
+    """A one-page PDF with one line of text, written by hand (no PDF library needed)."""
+    text = b"BT /F1 18 Tf 40 100 Td (markcheck test page) Tj ET"
+    objs = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Contents 4 0 R "
+        b"/Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length %d >>\nstream\n%s\nendstream" % (len(text), text),
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = b"%PDF-1.4\n"
+    offsets = []
+    for i, o in enumerate(objs, 1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n%s\nendobj\n" % (i, o)
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1)
+    out += b"".join(b"%010d 00000 n \n" % off for off in offsets)
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objs) + 1, xref)
+    return out
+
+
 # ---------- test certificates ----------
+
+# Fixed key numbers, serials and dates so every run makes the same test
+# certificates. These keys are public on purpose: they only sign test files.
+CA_KEY_NUMBER = 0x6D61726B636865636B2D746573742D726F6F742D6361  # "markcheck-test-root-ca"
+SIGNER_KEY_NUMBER = 0x6D61726B636865636B2D746573742D7369676E6572  # "markcheck-test-signer"
+CERT_START = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
+
 
 def make_test_certs() -> tuple[str, str, str]:
     """Return (signing chain PEM, private key PEM, root PEM). Test use only."""
-    now = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
-    ca_key = ec.generate_private_key(ec.SECP256R1())
+    now = CERT_START
+    ca_key = ec.derive_private_key(CA_KEY_NUMBER, ec.SECP256R1())
     ca_name = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME, "markcheck test CA (not trusted)"),
@@ -91,14 +162,14 @@ def make_test_certs() -> tuple[str, str, str]:
         x509.CertificateBuilder()
         .subject_name(ca_name).issuer_name(ca_name)
         .public_key(ca_key.public_key())
-        .serial_number(x509.random_serial_number())
+        .serial_number(0x4D43_0001)
         .not_valid_before(now).not_valid_after(now + dt.timedelta(days=3650))
         .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
         .add_extension(x509.KeyUsage(False, False, False, False, False, True, True, False, False), critical=True)
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(ca_key.public_key()), critical=False)
         .sign(ca_key, hashes.SHA256())
     )
-    key = ec.generate_private_key(ec.SECP256R1())
+    key = ec.derive_private_key(SIGNER_KEY_NUMBER, ec.SECP256R1())
     leaf = (
         x509.CertificateBuilder()
         .subject_name(x509.Name([
@@ -108,7 +179,7 @@ def make_test_certs() -> tuple[str, str, str]:
         ]))
         .issuer_name(ca_name)
         .public_key(key.public_key())
-        .serial_number(x509.random_serial_number())
+        .serial_number(0x4D43_0002)
         .not_valid_before(now).not_valid_after(now + dt.timedelta(days=3650))
         .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
         .add_extension(x509.KeyUsage(True, False, False, False, False, False, False, False, False), critical=True)
@@ -132,10 +203,15 @@ OFFLINE = {"verify": {"remote_manifest_fetch": False, "ocsp_fetch": False, "veri
 
 
 def sign(src: bytes, mime: str, manifest: dict, chain: str, key: str,
-         ingredient: tuple[dict, bytes] | None = None) -> bytes:
+         ingredient: tuple[dict, bytes] | None = None, thumbnail: bool = True) -> bytes:
+    """Sign with the c2pa library's own Builder. thumbnail=False leaves out the small
+    preview picture the library would otherwise add, which keeps test files small."""
     info = c2pa.C2paSignerInfo(c2pa.C2paSigningAlg.ES256, chain.encode(), key.encode(), None)
     signer = c2pa.Signer.from_info(info)
-    ctx = c2pa.Context.from_dict({"verify": OFFLINE["verify"]})
+    settings: dict = {"verify": OFFLINE["verify"]}
+    if not thumbnail:
+        settings["builder"] = {"thumbnail": {"enabled": False}}
+    ctx = c2pa.Context.from_dict(settings)
     builder = c2pa.Builder(manifest, ctx)
     if ingredient:
         builder.add_ingredient(ingredient[0], mime, io.BytesIO(ingredient[1]))
@@ -214,6 +290,34 @@ def main() -> None:
     (CONTROLS / "unsigned.png").write_bytes(png)
     files.append({"file": "controls/unsigned.jpg", "expect": [], "ai": False, "note": "Same picture, never signed."})
     files.append({"file": "controls/unsigned.png", "expect": [], "ai": False, "note": "Same picture, never signed."})
+
+    # More file types the c2pa Builder can sign. A smaller picture and no
+    # preview thumbnail keep these files small.
+    small = base_image(256, seed=8)
+    others: list[tuple[str, str, bytes | None, str]] = []
+    for ext, fmt, mime, kw in (("webp", "WEBP", "image/webp", {"quality": 85}),
+                               ("gif", "GIF", "image/gif", {}),
+                               ("tif", "TIFF", "image/tiff", {"compression": "tiff_deflate"})):
+        buf = io.BytesIO()
+        small.save(buf, fmt, **kw)
+        others.append((ext, mime, buf.getvalue(), f"{fmt} picture"))
+    others.append(("wav", "audio/wav", tiny_wav(), "half a second of WAV audio (a plain tone)"))
+    with tempfile.TemporaryDirectory() as tmp:
+        others.append(("mp4", "video/mp4", tiny_mp4(Path(tmp)), "one second of MP4 video (64x64, made with OpenCV)"))
+    others.append(("pdf", "application/pdf", tiny_pdf(), "one-page PDF"))
+    for ext, mime, data, what in others:
+        if data is None:
+            print(f"skipped {ext}: could not make a source file here")
+            continue
+        try:
+            signed_other = sign(data, mime, ai_manifest(f"ai_generated.{ext}"), chain, key, thumbnail=False)
+        except Exception as exc:  # report honestly and move on
+            print(f"skipped {ext}: the c2pa Builder could not sign it ({exc})")
+            continue
+        put(f"ai_generated.{ext}", signed_other, True, f"AI label on a {what}, signed with a test certificate.")
+        (CONTROLS / f"unsigned.{ext}").write_bytes(data)
+        files.append({"file": f"controls/unsigned.{ext}", "expect": [], "ai": False,
+                      "note": f"The same {what}, never signed."})
 
     (OUT / "manifest.json").write_text(json.dumps({"files": files}, indent=2) + "\n")
     print(f"wrote {len(files)} files to {OUT}")

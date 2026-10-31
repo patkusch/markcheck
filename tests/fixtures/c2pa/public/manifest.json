@@ -1,0 +1,9 @@
+{
+  "files": [
+    {"file": "adobe-20220124-A.jpg", "expect": [], "note": "C2PA public test file with no Content Credentials (control from a real camera-style JPEG)"},
+    {"file": "adobe-20220124-CA.jpg", "expect": ["c2pa"], "note": "C2PA public test file: valid label with one ingredient, signed with the C2PA tool's test certificate"},
+    {"file": "adobe-20220124-E-dat-CA.jpg", "expect": ["c2pa"], "note": "C2PA public test file: picture data changed after signing; must say changed"},
+    {"file": "adobe-20220124-E-sig-CA.jpg", "expect": ["c2pa"], "note": "C2PA public test file: signature does not validate; must say so"},
+    {"file": "adobe-20220124-E-uri-CA.jpg", "expect": ["c2pa"], "note": "C2PA public test file: part of the label tampered with; must say changed"}
+  ]
+}

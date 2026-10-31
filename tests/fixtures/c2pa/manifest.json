@@ -43,6 +43,90 @@
       "expect": [],
       "ai": false,
       "note": "Same picture, never signed."
+    },
+    {
+      "file": "ai_generated.webp",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a WEBP picture, signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.webp",
+      "expect": [],
+      "ai": false,
+      "note": "The same WEBP picture, never signed."
+    },
+    {
+      "file": "ai_generated.gif",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a GIF picture, signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.gif",
+      "expect": [],
+      "ai": false,
+      "note": "The same GIF picture, never signed."
+    },
+    {
+      "file": "ai_generated.tif",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a TIFF picture, signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.tif",
+      "expect": [],
+      "ai": false,
+      "note": "The same TIFF picture, never signed."
+    },
+    {
+      "file": "ai_generated.wav",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a half a second of WAV audio (a plain tone), signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.wav",
+      "expect": [],
+      "ai": false,
+      "note": "The same half a second of WAV audio (a plain tone), never signed."
+    },
+    {
+      "file": "ai_generated.mp4",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a one second of MP4 video (64x64, made with OpenCV), signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.mp4",
+      "expect": [],
+      "ai": false,
+      "note": "The same one second of MP4 video (64x64, made with OpenCV), never signed."
+    },
+    {
+      "file": "ai_generated.pdf",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label on a one-page PDF, signed with a test certificate."
+    },
+    {
+      "file": "controls/unsigned.pdf",
+      "expect": [],
+      "ai": false,
+      "note": "The same one-page PDF, never signed."
     }
   ]
 }

@@ -13,6 +13,7 @@ import random
 import struct
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from PIL.PngImagePlugin import PngInfo
 
@@ -46,7 +47,9 @@ def base_image(seed: int, size=(320, 240)) -> Image.Image:
         g = (40 + 25 * k, 90 + 20 * k + rnd.randint(0, 20), 50 + 10 * k)
         d.polygon(pts, fill=g)
     img = img.filter(ImageFilter.GaussianBlur(1.2))
-    noise = Image.effect_noise(size, 12).convert("RGB")
+    # seeded grey noise (Image.effect_noise is not seeded, so runs would differ)
+    grey = np.random.default_rng(seed).normal(128, 12, (h, w)).clip(0, 255).astype(np.uint8)
+    noise = Image.fromarray(grey, "L").convert("RGB")
     return Image.blend(img, noise, 0.06)
 
 

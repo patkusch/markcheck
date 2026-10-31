@@ -5,38 +5,156 @@
       "expect": [
         "sd_watermark"
       ],
-      "note": "SD v1 text 'StableDiffusionV1' added with invisible-watermark exactly as CompVis txt2img.py does"
+      "note": "SD v1 text 'StableDiffusionV1' added with invisible-watermark exactly as CompVis txt2img.py does; landscape, 512x512",
+      "payload": "SD v1"
+    },
+    {
+      "file": "unmarked_sd_v1.jpg",
+      "expect": [],
+      "note": "the same landscape picture before marking; no mark (saved as a JPEG at quality 85)"
     },
     {
       "file": "sd_v2_marked.png",
       "expect": [
         "sd_watermark"
       ],
-      "note": "SD v2 text 'SDV2' added with invisible-watermark exactly as Stability-AI txt2img.py does"
+      "note": "SD v2 text 'SDV2' added with invisible-watermark exactly as Stability-AI txt2img.py does; landscape, 512x512",
+      "payload": "SD v2"
+    },
+    {
+      "file": "unmarked_sd_v2.jpg",
+      "expect": [],
+      "note": "the same landscape picture before marking; no mark (saved as a JPEG at quality 85)"
     },
     {
       "file": "sdxl_marked.png",
       "expect": [
         "sd_watermark"
       ],
-      "note": "SDXL 48-bit payload 0xB3EC907BB19E added exactly as diffusers StableDiffusionXLWatermarker does"
+      "note": "SDXL 48-bit payload 0xB3EC907BB19E added exactly as diffusers StableDiffusionXLWatermarker does; landscape, 512x512",
+      "payload": "SDXL"
+    },
+    {
+      "file": "unmarked_sdxl.jpg",
+      "expect": [],
+      "note": "the same landscape picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "sd_v1_city_768x512.jpg",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SD v1 text 'StableDiffusionV1' added with invisible-watermark exactly as CompVis txt2img.py does; city, 768x512 (saved as a JPEG at quality 95)",
+      "payload": "SD v1"
+    },
+    {
+      "file": "unmarked_sd_v1_city_768x512.jpg",
+      "expect": [],
+      "note": "the same city picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "sd_v2_still_life_768x768.jpg",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SD v2 text 'SDV2' added with invisible-watermark exactly as Stability-AI txt2img.py does; still_life, 768x768 (saved as a JPEG at quality 95)",
+      "payload": "SD v2"
+    },
+    {
+      "file": "unmarked_sd_v2_still_life_768x768.jpg",
+      "expect": [],
+      "note": "the same still_life picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "sdxl_city_1024x1024.jpg",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SDXL 48-bit payload 0xB3EC907BB19E added exactly as diffusers StableDiffusionXLWatermarker does; city, 1024x1024 (saved as a JPEG at quality 95)",
+      "payload": "SDXL"
+    },
+    {
+      "file": "unmarked_sdxl_city_1024x1024.jpg",
+      "expect": [],
+      "note": "the same city picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "sdxl_still_life_896x640.jpg",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SDXL 48-bit payload 0xB3EC907BB19E added exactly as diffusers StableDiffusionXLWatermarker does; still_life, 896x640 (saved as a JPEG at quality 95)",
+      "payload": "SDXL"
+    },
+    {
+      "file": "unmarked_sdxl_still_life_896x640.jpg",
+      "expect": [],
+      "note": "the same still_life picture before marking; no mark (saved as a JPEG at quality 85)"
     },
     {
       "file": "trustmark_q_marked.png",
       "expect": [
         "trustmark"
       ],
-      "note": "TrustMark variant Q, text 'markchk' (BCH_5 schema), added with trustmark's own encoder"
+      "note": "TrustMark variant Q, text 'markchk' (BCH_5 schema), added with trustmark's own encoder; landscape, 512x512",
+      "payload": "markchk"
     },
     {
-      "file": "unmarked_1.png",
+      "file": "unmarked_trustmark_q.jpg",
       "expect": [],
-      "note": "drawn picture with no mark; same kind of picture as the marked ones"
+      "note": "the same landscape picture before marking; no mark (saved as a JPEG at quality 85)"
     },
     {
-      "file": "unmarked_5.png",
+      "file": "trustmark_city_256x256.png",
+      "expect": [
+        "trustmark"
+      ],
+      "note": "TrustMark variant Q, text 'mc-0002' (BCH_5 schema), added with trustmark's own encoder; city, 256x256",
+      "payload": "mc-0002"
+    },
+    {
+      "file": "unmarked_trustmark_city_256x256.jpg",
       "expect": [],
-      "note": "drawn picture with no mark; same kind of picture as the marked ones"
+      "note": "the same city picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "trustmark_still_life_384x384.png",
+      "expect": [
+        "trustmark"
+      ],
+      "note": "TrustMark variant Q, text 'mc-0003' (BCH_5 schema), added with trustmark's own encoder; still_life, 384x384",
+      "payload": "mc-0003"
+    },
+    {
+      "file": "unmarked_trustmark_still_life_384x384.jpg",
+      "expect": [],
+      "note": "the same still_life picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "trustmark_landscape_1024x768.jpg",
+      "expect": [
+        "trustmark"
+      ],
+      "note": "TrustMark variant Q, text 'mc-0004' (BCH_5 schema), added with trustmark's own encoder; landscape, 1024x768 (saved as a JPEG at quality 95)",
+      "payload": "mc-0004"
+    },
+    {
+      "file": "unmarked_trustmark_landscape_1024x768.jpg",
+      "expect": [],
+      "note": "the same landscape picture before marking; no mark (saved as a JPEG at quality 85)"
+    },
+    {
+      "file": "trustmark_city_640x480.jpg",
+      "expect": [
+        "trustmark"
+      ],
+      "note": "TrustMark variant Q, text 'mc-0005' (BCH_5 schema), added with trustmark's own encoder; city, 640x480 (saved as a JPEG at quality 95)",
+      "payload": "mc-0005"
+    },
+    {
+      "file": "unmarked_trustmark_city_640x480.jpg",
+      "expect": [],
+      "note": "the same city picture before marking; no mark (saved as a JPEG at quality 85)"
     }
   ]
 }

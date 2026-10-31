@@ -16,7 +16,8 @@ from PIL import Image
 from markcheck.cli import check_file
 from markcheck.detectors import sd_watermark, trustmark_check
 
-WM = Path(__file__).parent / "fixtures" / "watermark"
+FIX_ROOT = Path(__file__).parent / "fixtures"
+WM = FIX_ROOT / "watermark"
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 MANIFEST = json.loads((WM / "manifest.json").read_text())["files"]
 
@@ -49,6 +50,14 @@ UNMARKED = [e["file"] for e in MANIFEST if not e["expect"]]
 def test_fixture_set_is_complete():
     assert set(SD_MARKED) >= {"sd_v1_marked.png", "sd_v2_marked.png", "sdxl_marked.png"}
     assert UNMARKED
+
+
+def test_base_pictures_are_reproducible():
+    mk = _make_module()
+    for scene in mk.SCENES:
+        a = np.array(mk.base_image(7, (300, 260), scene))
+        b = np.array(mk.base_image(7, (300, 260), scene))
+        assert np.array_equal(a, b)
 
 
 @pytest.mark.parametrize("name", SD_MARKED)
@@ -154,7 +163,8 @@ needs_weights = pytest.mark.skipif(
 def test_trustmark_marked_fixture_is_found(name):
     f = _finding(WM / name, "trustmark")
     assert f.status == "found", f.summary
-    assert f.details["payload_text"] == "markchk"
+    entry = next(e for e in MANIFEST if e["file"] == name)
+    assert f.details["payload_text"] == entry.get("payload", "markchk")
     assert f.details["schema"].startswith("BCH_5")
     for word in ("authentic", "human-made", "not AI"):
         assert word not in f.summary
@@ -167,7 +177,73 @@ def test_trustmark_not_found_on_other_pictures(name):
 
 
 def test_trustmark_fixture_listed():
-    assert TM_MARKED == ["trustmark_q_marked.png"]
+    assert "trustmark_q_marked.png" in TM_MARKED and len(TM_MARKED) >= 5
+
+
+def test_sd_fixture_set_is_varied():
+    entries = [e for e in MANIFEST if "sd_watermark" in e["expect"]]
+    assert len(entries) >= 6
+    assert {e["payload"] for e in entries} == {"SD v1", "SD v2", "SDXL"}
+    assert any(e["file"].endswith(".jpg") for e in entries)
+
+
+def test_trustmark_chance_rule():
+    """Only readings a random picture would match less than once in a million count."""
+    assert {v: trustmark_check.max_fixed_bits(v) for v in range(4)} == {0: 8, 1: 2, 2: 1, 3: 0}
+    assert trustmark_check.chance_by_luck(3, 3) > 1e-3  # what the library alone accepts for BCH_3
+
+
+@needs_weights
+def test_trustmark_lucky_weak_reading_is_not_counted():
+    """Round 2 finding: this ordinary control passes the library's BCH_3 check by luck.
+    The library alone says 'present'; markcheck must not say found."""
+    from PIL import Image
+
+    path = FIX_ROOT / "controls" / "caption_mentions_ai.png"
+    tm = trustmark_check.get_model()
+    rgb = Image.open(path).convert("RGB")
+    _, present, version = tm.decode(rgb, MODE="binary")
+    assert present and version == 3
+    f = _finding(path, "trustmark")
+    assert f.status == "not_found"
+    assert "weak error check" in f.summary
+
+
+@needs_weights
+def test_trustmark_reader_matches_library_decode():
+    """Our raw-bit reading must give the same answer as TrustMark.decode()."""
+    from PIL import Image
+
+    tm = trustmark_check.get_model()
+    paths = [WM / e["file"] for e in MANIFEST] + [FIX_ROOT / "controls" / "caption_mentions_ai.png"]
+    for p in paths:
+        rgb = Image.open(p).convert("RGB")
+        ours = trustmark_check.read(tm, rgb)
+        secret, present, version = tm.decode(rgb, MODE="binary")
+        assert ours["passed_library_check"] == present, p.name
+        if present:
+            assert (ours["secret"], ours["version"]) == (secret, version), p.name
+
+
+@needs_weights
+def test_trustmark_many_unmarked_pictures_never_found():
+    """150 unmarked pictures of three kinds. Before the round 2 fix about 1 in 25 'passed'."""
+    mk = _make_module()
+    spec = importlib.util.spec_from_file_location("make_fixtures_controls", SCRIPTS / "make_fixtures_controls.py")
+    ctl = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctl)
+    pics = [mk.base_image(s, (384 + s % 3 * 128, 384), mk.SCENES[s % 3]) for s in range(200, 260)]
+    pics += [ctl.photo_like(s, (320 + s % 4 * 64, 320)) for s in range(300, 360)]
+    pics += [ctl.flat_graphic(s, (400, 300)) for s in range(500, 530)]
+    tm = trustmark_check.get_model()
+    lucky = 0
+    for im in pics:
+        buf = io.BytesIO()
+        im.save(buf, "PNG")
+        f = trustmark_check.check("x.png", buf.getvalue(), "image", {})[0]
+        assert f.status == "not_found"
+        lucky += trustmark_check.read(tm, im.convert("RGB"))["passed_library_check"]
+    assert lucky >= 1  # the library alone would have raised false alarms here
 
 
 def test_trustmark_skips_without_model_files(monkeypatch):

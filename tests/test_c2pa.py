@@ -84,7 +84,7 @@ def test_test_certificate_is_not_on_trust_list_and_says_anyone_could():
     f = run(C2PA_DIR / "ai_generated.png")
     assert f.details["on_c2pa_trust_list"] == "no"
     assert any("anyone" in s for s in f.does_not_prove)
-    assert any("not that what it shows is real" in s for s in f.does_not_prove)
+    assert any("not that what it shows is correct" in s for s in f.does_not_prove)
 
 
 def test_trust_check_really_runs():

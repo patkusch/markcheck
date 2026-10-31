@@ -1,0 +1,114 @@
+{
+  "files": [
+    {
+      "file": "photo_like_1024x768_q70.jpg",
+      "expect": [],
+      "note": "photo-like texture, JPEG quality 70"
+    },
+    {
+      "file": "photo_like_640x480_q95.jpg",
+      "expect": [],
+      "note": "photo-like texture, JPEG quality 95"
+    },
+    {
+      "file": "photo_like_512x512_q40.jpg",
+      "expect": [],
+      "note": "photo-like texture, JPEG quality 40"
+    },
+    {
+      "file": "photo_like_800x600_q85.jpg",
+      "expect": [],
+      "note": "photo-like texture, JPEG quality 85"
+    },
+    {
+      "file": "photo_like_600x400.webp",
+      "expect": [],
+      "note": "photo-like texture, lossy WebP"
+    },
+    {
+      "file": "photo_like_384x384.png",
+      "expect": [],
+      "note": "photo-like texture, PNG"
+    },
+    {
+      "file": "flat_graphic_800x600.png",
+      "expect": [],
+      "note": "flat shapes on a plain background, like a logo or slide"
+    },
+    {
+      "file": "flat_graphic_512.jpg",
+      "expect": [],
+      "note": "flat shapes saved as JPEG"
+    },
+    {
+      "file": "bar_chart_640x400.png",
+      "expect": [],
+      "note": "a simple bar chart with text"
+    },
+    {
+      "file": "screenshot_1280x800.png",
+      "expect": [],
+      "note": "screenshot-like picture of a window with text"
+    },
+    {
+      "file": "screenshot_900x600.jpg",
+      "expect": [],
+      "note": "screenshot-like picture with text, saved as JPEG"
+    },
+    {
+      "file": "grayscale_600x400.jpg",
+      "expect": [],
+      "note": "grayscale (one channel) JPEG"
+    },
+    {
+      "file": "grayscale_400.png",
+      "expect": [],
+      "note": "grayscale PNG"
+    },
+    {
+      "file": "alpha_512.png",
+      "expect": [],
+      "note": "picture with see-through edges (alpha channel)"
+    },
+    {
+      "file": "tiny_16x16.png",
+      "expect": [],
+      "note": "a tiny 16x16 picture, like an icon"
+    },
+    {
+      "file": "small_100x80.jpg",
+      "expect": [],
+      "note": "a small thumbnail-sized JPEG"
+    },
+    {
+      "file": "palette_320x240.gif",
+      "expect": [],
+      "note": "GIF with a 64-colour palette"
+    },
+    {
+      "file": "panorama_1600x400.jpg",
+      "expect": [],
+      "note": "very wide picture"
+    },
+    {
+      "file": "tall_480x960.jpg",
+      "expect": [],
+      "note": "very tall picture, like a phone photo"
+    },
+    {
+      "file": "noise_256.png",
+      "expect": [],
+      "note": "pure random noise, the hardest case for hidden-mark checks"
+    },
+    {
+      "file": "caption_mentions_sd.png",
+      "expect": [],
+      "note": "PNG whose caption names AI tools; ordinary text, not a label"
+    },
+    {
+      "file": "notes_about_c2pa.txt",
+      "expect": [],
+      "note": "text file that names labels and watermarks; mentions are not labels"
+    }
+  ]
+}

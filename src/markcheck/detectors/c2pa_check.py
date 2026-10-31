@@ -335,7 +335,7 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
     proves: list[str] = []
     not_proves: list[str] = [
         "That the content is accurate or that the events shown happened. "
-        "A signature shows who signed the label, not that what it shows is real.",
+        "A signature shows who signed the label, not that what it shows is correct.",
     ]
     if sig_bad:
         proves.append("The file carries a signed label, but the signature does not match it.")
@@ -354,7 +354,7 @@ def _explain(store: dict, cr: dict, trust_checked: bool) -> Finding:
         not_proves.append("That the signer is who the certificate name says. This certificate is not on the "
                           "official C2PA trust list, so anyone could have made a certificate with this name.")
     if self_signed or test_cert:
-        not_proves.append("Anything about the real maker: this is a test or self-signed certificate, "
+        not_proves.append("Anything about who actually made the file: this is a test or self-signed certificate, "
                           "which anyone can create.")
     if not ai_kind:
         not_proves.append("That no AI was used. The label only records what the signing tool chose to say.")

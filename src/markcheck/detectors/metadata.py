@@ -474,6 +474,13 @@ def _sd_settings(key: str, val: str) -> str | None:
     return None
 
 
+# AUTOMATIC1111 writes "..., Model hash: 31e35c80fc, Model: sd_xl_base_1.0, Version: v1.5.1" on its last line.
+_A1111_FIELDS = [
+    ("model named", re.compile(r"(?:^|[,\n]\s*)Model:\s*([^,\n]+)")),
+    ("tool version", re.compile(r"(?:^|[,\n]\s*)Version:\s*([^,\n]+)")),
+]
+
+
 def _tool_name(value: str) -> str | None:
     for rx, name in _TOOL_RE:
         if rx.search(value or ""):
@@ -515,6 +522,7 @@ def check(path, data, kind, options) -> list[Finding]:
     aigc: list[tuple[str, dict]] = []
     tools: list[tuple[str, str, str]] = []  # (where, tool, raw)
     settings: list[tuple[str, str]] = []    # (where, kind)
+    settings_named: dict[str, str] = {}     # "model named" / "tool version" from AUTOMATIC1111 text
 
     for where, packet in got["xmp"]:
         root = parse_xmp(packet)
@@ -547,6 +555,10 @@ def check(path, data, kind, options) -> list[Finding]:
         s = _sd_settings(key, val)
         if s:
             settings.append((where, s))
+            for field_name, rx in _A1111_FIELDS:
+                mm = rx.search(val or "") if s.startswith("AUTOMATIC1111") else None
+                if mm and field_name not in settings_named:
+                    settings_named[field_name] = _short(mm.group(1), 80)
             continue
         if key in ("Software",):
             name = _tool_name(val)
@@ -612,9 +624,11 @@ def check(path, data, kind, options) -> list[Finding]:
     if settings:
         findings.append(Finding(
             NAME, "Generation settings in metadata (hint)", "found",
-            f"The file contains text in the format AI image tools write ({settings[0][1]}).",
+            f"The file contains text in the format AI image tools write ({settings[0][1]})"
+            + (f"; it names the model '{settings_named['model named']}'." if "model named" in settings_named
+               else "."),
             details={"where in the file": ", ".join(sorted({w for w, _ in settings})),
-                     "format": ", ".join(sorted({s for _, s in settings}))},
+                     "format": ", ".join(sorted({s for _, s in settings})), **settings_named},
             proves=["The file contains text laid out like a Stable Diffusion tool's generation settings."],
             does_not_prove=[PLAIN_TEXT, "Anyone can paste such text into any image, so it is only a hint."],
         ))

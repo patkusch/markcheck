@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "file": "ai_generated.jpg",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "Signed with a test certificate; label says made by a (fictional) AI model."
+    },
+    {
+      "file": "ai_generated.png",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "PNG version of the AI label."
+    },
+    {
+      "file": "ordinary_edit.jpg",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": false,
+      "note": "Signed with a test certificate; label says opened and colour-adjusted, no AI source type."
+    },
+    {
+      "file": "changed_after_signing.jpg",
+      "expect": [
+        "c2pa"
+      ],
+      "ai": true,
+      "note": "AI label, then 8 bytes of picture data changed after signing. Must report changed after signing."
+    },
+    {
+      "file": "controls/unsigned.jpg",
+      "expect": [],
+      "ai": false,
+      "note": "Same picture, never signed."
+    },
+    {
+      "file": "controls/unsigned.png",
+      "expect": [],
+      "ai": false,
+      "note": "Same picture, never signed."
+    }
+  ]
+}

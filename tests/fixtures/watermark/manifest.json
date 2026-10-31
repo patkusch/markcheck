@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "file": "sd_v1_marked.png",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SD v1 text 'StableDiffusionV1' added with invisible-watermark exactly as CompVis txt2img.py does"
+    },
+    {
+      "file": "sd_v2_marked.png",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SD v2 text 'SDV2' added with invisible-watermark exactly as Stability-AI txt2img.py does"
+    },
+    {
+      "file": "sdxl_marked.png",
+      "expect": [
+        "sd_watermark"
+      ],
+      "note": "SDXL 48-bit payload 0xB3EC907BB19E added exactly as diffusers StableDiffusionXLWatermarker does"
+    },
+    {
+      "file": "trustmark_q_marked.png",
+      "expect": [
+        "trustmark"
+      ],
+      "note": "TrustMark variant Q, text 'markchk' (BCH_5 schema), added with trustmark's own encoder"
+    },
+    {
+      "file": "unmarked_1.png",
+      "expect": [],
+      "note": "drawn picture with no mark; same kind of picture as the marked ones"
+    },
+    {
+      "file": "unmarked_5.png",
+      "expect": [],
+      "note": "drawn picture with no mark; same kind of picture as the marked ones"
+    }
+  ]
+}

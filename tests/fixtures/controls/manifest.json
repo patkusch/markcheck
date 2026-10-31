@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "file": "plain.jpg",
+      "expect": [],
+      "note": "plain JPEG, no metadata"
+    },
+    {
+      "file": "plain.png",
+      "expect": [],
+      "note": "plain PNG, no metadata"
+    },
+    {
+      "file": "plain.webp",
+      "expect": [],
+      "note": "plain WebP, no metadata"
+    },
+    {
+      "file": "xmp_digital_capture.jpg",
+      "expect": [],
+      "note": "ordinary XMP with IPTC digitalCapture; must not be flagged"
+    },
+    {
+      "file": "camera_exif.jpg",
+      "expect": [],
+      "note": "JPEG with camera EXIF"
+    },
+    {
+      "file": "note.txt",
+      "expect": [],
+      "note": "plain text file"
+    },
+    {
+      "file": "tiny.pdf",
+      "expect": [],
+      "note": "tiny one-page PDF, no XMP"
+    },
+    {
+      "file": "caption_mentions_ai.png",
+      "expect": [],
+      "note": "PNG whose caption mentions 'AI'; must not be flagged"
+    }
+  ]
+}

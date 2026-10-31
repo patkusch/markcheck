@@ -1,0 +1,53 @@
+{
+  "files": [
+    {
+      "file": "iptc_trained_uri_attr.jpg",
+      "expect": [
+        "metadata"
+      ],
+      "note": "IPTC DigitalSourceType trainedAlgorithmicMedia, full http URI, attribute form"
+    },
+    {
+      "file": "iptc_composite_short_element.jpg",
+      "expect": [
+        "metadata"
+      ],
+      "note": "IPTC compositeWithTrainedAlgorithmicMedia, short code, element form"
+    },
+    {
+      "file": "iptc_trained_https.png",
+      "expect": [
+        "metadata"
+      ],
+      "note": "PNG iTXt XMP, https URI as rdf:resource"
+    },
+    {
+      "file": "iptc_composite_synthetic.webp",
+      "expect": [
+        "metadata"
+      ],
+      "note": "WebP XMP chunk, compositeSynthetic"
+    },
+    {
+      "file": "aigc_xmp.jpg",
+      "expect": [
+        "metadata"
+      ],
+      "note": "China AIGC label as JSON in an XMP property (layout from secondary sources)"
+    },
+    {
+      "file": "aigc_png_text.png",
+      "expect": [
+        "metadata"
+      ],
+      "note": "China AIGC label as JSON in a PNG tEXt chunk named AIGC"
+    },
+    {
+      "file": "sd_parameters.png",
+      "expect": [
+        "metadata"
+      ],
+      "note": "AUTOMATIC1111-style PNG 'parameters' text (a hint: anyone can type this)"
+    }
+  ]
+}

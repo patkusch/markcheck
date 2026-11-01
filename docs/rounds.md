@@ -112,3 +112,33 @@ How to read the numbers:
 - **By length (HC3 + MAGE held-out, before the minimum):** 30-59 words AUROC 0.92 and only 30% caught at 1 in 100; 60-99 words 0.96 and 50%; 100-149 words 0.97 and 82%; 150-249 words 0.98 and 90%; 250 words or more 0.94 and 48% (longer MAGE news texts, scored on their first 512 word pieces).
 - **Honest reading:** on text like its training data it is almost never wrong. On newer AI text about other topics it ranks well (AUROC 0.94) but its chances are far too sure of themselves: almost half of the GPT-4 texts were put below the band. Reworded AI text was missed almost completely. The fit learned what ChatGPT answers in 2023 look like, not AI text in general.
 - **Tests:** 329 passed, plus 3 slow tests with the real models.
+
+## Text round 2 — fit on two sources, wider "can't tell" band
+
+- **Built:**
+  - The fit now also uses half of MAGE (split by text, so no text is in both halves). HC3 and MAGE count equally, so the bigger one does not set the curve alone.
+  - Three more measures from the same model pass: the Fast-DetectGPT curvature, the performer's average surprise, and the text's length. They only stay because they helped on held-out texts (see below).
+  - The "can't tell" band is now set from the data: its top is where at most 1 in 100 people's training texts reach, and never below 65%. Its bottom is where at most 1 in 100 AI training texts fall, and never above 35%. That gave 7-83%.
+  - The overlapping predictability measures are reported as one reason, because their separate weights mean little when they move together.
+  - The answer now also says how much AI text is caught, not only how often it is missed.
+- **What we tried and dropped:** the round-1 three measures fitted on both sources caught 61% of GPT-4 texts at 1 in 100 and put 8.8% of TOEFL essays above a 35-65% band. The six measures caught 78% and put 3.3% above the band, so we kept six.
+- **Numbers (texts of 100 words or more; MAGE is now only the held-out half):**
+
+| Held-out set | Texts | AUROC | Caught at 1 in 100 | Calibration error | People above band | AI above band (caught) | AI below band |
+|---|---|---|---|---|---|---|---|
+| HC3, same topics | 914 | 0.998 | 99.5% | 0.018 | 0.3% | 99.0% | 0.2% |
+| MAGE, GPT-4 | 721 | 0.964 | 77.5% | 0.041 | 0.8% | 73.4% | 2.2% |
+| MAGE reworded by another AI | 1,856 | 0.665 | 3.5% | 0.635 | 0.8% | 2.0% | 44.5% |
+| TOEFL essays (all 91, any length) | 91 | - | - | - | 3.3% | - | - |
+
+- **Writing it has never seen** (refit with one kind of MAGE writing left out, tested on that kind):
+
+| Left out | AUROC | People above band | AI above band |
+|---|---|---|---|
+| News (CNN) | 0.72 | **16%** | 57% |
+| Dialogue summaries | 0.99 | 2.4% | 88% |
+| Film reviews | 0.999 | 0% | 78% |
+| Medical abstracts | 0.98 | 1.0% | 82% |
+
+- **By length (held-out HC3 + MAGE):** 30-59 words AUROC 0.92, 3.2% of people's texts above the band; 60-99 words 0.99, 2.5%; 100-149 words 0.98, 0.7%; 150-249 words 0.996, 0%; 250+ words 0.98, 0.9%. We keep the minimum at 100 words: below it, people's texts were flagged three to four times as often. Between 100 and 150 words the answer carries a note that it is less accurate.
+- **Honest reading:** calibration on GPT-4 text went from badly over-sure (error 0.228) to close (0.041), and missed AI text below the band fell from 44.5% to 2.2%. The price is a wider band: 32% of people's GPT-4-set texts and 60% of the TOEFL essays now land in "can't tell". That is the honest answer for them. The big failure is writing the fit has never seen: with no news in training, 16 in 100 people's news articles were put above the band. Reworded AI text is still missed almost entirely.

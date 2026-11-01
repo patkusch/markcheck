@@ -147,16 +147,23 @@ Below that, our tests showed people's texts were wrongly flagged three to four t
 
 ### How accurate it is
 
-Measured on texts kept aside, never used for fitting (full numbers in `docs/rounds.md`):
+<!-- text-accuracy:start -->
+Measured on texts kept aside, never used for fitting. The "can't tell" band is 7%-84%. Texts under 100 words get no number. Full numbers are in `docs/rounds.md`.
 
-| Kind of text | Caught as AI (above the band) | People's texts wrongly put above the band |
-|---|---|---|
-| Answers like the ones it was fitted on (ChatGPT, 2023) | 99 in 100 | fewer than 1 in 100 |
-| News, reviews, summaries and medical abstracts by GPT-4 | 74 in 100 | 1 in 100 |
-| AI text reworded by another AI | 2 in 100 | - |
-| Essays by non-native English students | - | 3 in 100 (and 57 in 100 "can't tell") |
-| Essays by US school and college students | - | 0 in 100 (5 in 100 "can't tell") |
-| News, when no news was used for fitting | - | 14 in 100 |
+| What we measured | How often |
+|---|---|
+| people's texts put above the band (similar topics) | fewer than 1 in 100 |
+| AI texts caught above the band (similar topics) | 99 in 100 |
+| AI texts put below the band (similar topics) | fewer than 1 in 100 |
+| people's texts put above the band (news, reviews, summaries, abstracts; GPT-4) | 1 in 100 |
+| AI texts caught above the band (news, reviews, summaries, abstracts; GPT-4) | 74 in 100 |
+| AI texts put below the band (news, reviews, summaries, abstracts; GPT-4) | 2 in 100 |
+| AI texts reworded by another AI, caught above the band | 2 in 100 |
+| essays by non-native English students put above the band | 3 in 100 |
+| essays by non-native English students put inside the band | 57 in 100 |
+| essays by US school and college students put inside or above the band | 5 in 100 |
+| people's news put above the band when that kind of writing was left out of fitting (the worst case we tried) | 14 in 100 |
+<!-- text-accuracy:end -->
 
 What this means in plain words:
 

@@ -80,3 +80,35 @@ Each round: build, test, look for weak spots, improve. Numbers come from `script
 | trustmark | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 |
 
 - **Tests:** 244 → 276 passed.
+
+# Text check (`markcheck text`)
+
+Numbers come from `scripts/measure_text.py`, on texts never used for fitting.
+The data is fetched once and never committed: HC3 (CC-BY-SA-4.0), MAGE's out-of-domain GPT-4 files (Apache-2.0 / CC BY 4.0) and the 91 TOEFL essays from Liang et al. 2023 (no licence file, so used only for measuring).
+How to read the numbers:
+
+- **AUROC**: the chance that a random AI text scores higher than a random person's text. 0.5 is a coin toss; 1.0 is perfect.
+- **Caught at 1 in 100**: the share of AI texts caught when the line is set so that only 1 in 100 people's texts is wrongly flagged.
+- **Calibration error**: the average gap between the stated chance and how often it came true. 0 is perfect; 0.10 means the stated chances were off by about 10 points.
+- **Above / below the band**: the share of texts put above or below the "can't tell" band (35-65%).
+
+## Text round 1 — first working version
+
+- **Built:** Binoculars score from SmolLM2-360M and SmolLM2-360M-Instruct (Apache-2.0, about 1.4 GB together, about 0.3-0.8 seconds per text on this laptop's CPU), plus two cheap measures: how often the next word was in the model's top 10 guesses, and how even the sentence lengths are. A logistic curve turns them into a chance. Fitted on 907 HC3 texts (half people, half ChatGPT), split by question so no question is in both halves.
+- **What failed on the way:**
+  - HC3 answers by people have stray spaces before full stops and commas. A detector could learn that instead of the writing. We tidy spacing on every text, AI and people's, before scoring.
+  - Our first wording described sentence evenness as "unusually even" whatever the fitted model did with it. Reasons now say which way each measure moved this estimate.
+  - Loading the models printed progress bars. They are now switched off.
+- **Numbers (texts of 100 words or more):**
+
+| Held-out set | Texts | AUROC | Caught at 1 in 100 | Calibration error | People above band | AI below band |
+|---|---|---|---|---|---|---|
+| HC3, same topics as training | 914 | 0.998 | 99% | 0.006 | 0.9% | 0.5% |
+| MAGE, new topics, GPT-4 | 1,428 | 0.938 | 50% | 0.228 | 0.7% | 44.5% |
+| MAGE reworded by another AI | 2,235 | 0.558 | 0.4% | 0.662 | 0.7% | 99.1% |
+| TOEFL essays by non-native students | 63 | - | - | - | 4.8% | - |
+
+- **By kind of writing (MAGE):** news (CNN) AUROC 0.81 with 75% of AI texts below the band; film reviews 0.996 but 60% of AI texts below the band; dialogue summaries 0.98; medical abstracts 0.996.
+- **By length (HC3 + MAGE held-out, before the minimum):** 30-59 words AUROC 0.92 and only 30% caught at 1 in 100; 60-99 words 0.96 and 50%; 100-149 words 0.97 and 82%; 150-249 words 0.98 and 90%; 250 words or more 0.94 and 48% (longer MAGE news texts, scored on their first 512 word pieces).
+- **Honest reading:** on text like its training data it is almost never wrong. On newer AI text about other topics it ranks well (AUROC 0.94) but its chances are far too sure of themselves: almost half of the GPT-4 texts were put below the band. Reworded AI text was missed almost completely. The fit learned what ChatGPT answers in 2023 look like, not AI text in general.
+- **Tests:** 329 passed, plus 3 slow tests with the real models.

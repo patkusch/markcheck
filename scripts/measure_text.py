@@ -506,6 +506,43 @@ def print_report(res):
                 print(f"   {k[:34]:34s}", fmt(v))
 
 
+# ---------------------------------------------------------------- comparing two fits
+
+MAX_PEOPLE_FLAGGED = 0.01
+
+
+def people_rates(res):
+    """People's texts put above the band, per kind of writing and per people-only set."""
+    out = {f"kind: {k}": v for k, v in res["by_kind"].items() if v.get("n_people")}
+    out.update({f"set: {k}": v for k, v in res["people_only"].items() if v.get("n_people")})
+    return {k: (v["people_above_band"], v["n_people"]) for k, v in out.items()}
+
+
+def compare(old, new):
+    """The ship rule: people's texts flagged overall stay at 1 in 100 or fewer, and no kind
+    of writing (or people-only set) has more people's texts flagged than with the old fit."""
+    po, pn = people_rates(old), people_rates(new)
+    rows, worse = [], []
+    for k in sorted(set(po) | set(pn)):
+        o, n = po.get(k, (None, 0)), pn.get(k, (None, 0))
+        rows.append({"group": k, "n": n[1] or o[1], "old": o[0], "new": n[0]})
+        if o[0] is not None and n[0] is not None and n[0] > o[0]:
+            worse.append(k)
+    overall_new = new["overall"].get("people_above_band", 1.0)
+    ok = overall_new <= MAX_PEOPLE_FLAGGED and not worse
+    print("-- compare (people's texts above the band: old -> new)")
+    print(f"   overall {old['overall'].get('people_above_band', float('nan')):.4f} -> {overall_new:.4f}"
+          f"   AI caught {old['overall'].get('ai_above_band', float('nan')):.3f} -> "
+          f"{new['overall'].get('ai_above_band', float('nan')):.3f}")
+    for r in rows:
+        print(f"   {r['group'][:40]:40s} n={r['n']:5d}  {r['old'] if r['old'] is None else round(r['old'], 4)}"
+              f" -> {r['new'] if r['new'] is None else round(r['new'], 4)}" + ("   WORSE" if r["group"] in worse else ""))
+    print("   ship rule:", "PASS" if ok else f"FAIL (overall {overall_new:.4f}; worse: {', '.join(worse) or 'none'})")
+    return {"ship": ok, "worse": worse, "overall_old": old["overall"], "overall_new": new["overall"],
+            "rows": rows, "old_sets": old["sets"], "old_by_model": old["by_model"],
+            "old_reworded": old["reworded"]}
+
+
 # ---------------------------------------------------------------- main
 
 def main():
@@ -523,6 +560,8 @@ def main():
     ap.add_argument("--hold-kind", default=None, help="leave this kind of writing out of fitting")
     ap.add_argument("--baseline", action="store_true", help="measure the current calibration json, no refit")
     ap.add_argument("--quick", action="store_true", help="skip the leave-one-out refits")
+    ap.add_argument("--compare-with", default=None,
+                    help="an older calibration json: measure it on the same held-out texts and apply the ship rule")
     ap.add_argument("--json-out", default=None)
     ap.add_argument("--fairness", default=None, help="fair_results.json to merge under 'fairness' on --write")
     ap.add_argument("--write", action="store_true")
@@ -538,6 +577,9 @@ def main():
     res["args"] = vars(a)
     res["cpu_seconds_total"] = round(time.process_time(), 1)
     print_report(res)
+    if a.compare_with:
+        old = Fit.from_json(json.loads(Path(a.compare_with).read_text()))
+        res["compare"] = compare(report(exp, old, full=False), res)
     if a.json_out:
         Path(a.json_out).write_text(json.dumps(clean(res), indent=1) + "\n")
     if a.write:

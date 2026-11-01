@@ -42,3 +42,22 @@ def test_raid_split_keeps_a_document_on_one_side():
     side = {}
     for r in out:
         assert side.setdefault(r["doc_id"], r["side"]) == r["side"]
+
+
+def _res(overall, kinds, sets=None):
+    return {"overall": {"people_above_band": overall, "ai_above_band": 0.5},
+            "by_kind": {k: {"people_above_band": v, "n_people": 100} for k, v in kinds.items()},
+            "people_only": {k: {"people_above_band": v, "n_people": 50} for k, v in (sets or {}).items()},
+            "sets": {}, "by_model": {}, "reworded": {}}
+
+
+def test_ship_rule_passes_when_nothing_gets_worse():
+    old = _res(0.008, {"news": 0.02, "qa": 0.01}, {"toefl": 0.03})
+    new = _res(0.006, {"news": 0.02, "qa": 0.0}, {"toefl": 0.01})
+    assert mt.compare(old, new)["ship"]
+
+
+def test_ship_rule_fails_on_one_worse_kind_or_high_overall():
+    old = _res(0.008, {"news": 0.02, "qa": 0.01})
+    assert mt.compare(old, _res(0.005, {"news": 0.03, "qa": 0.0}))["worse"] == ["kind: news"]
+    assert not mt.compare(old, _res(0.02, {"news": 0.0, "qa": 0.0}))["ship"]

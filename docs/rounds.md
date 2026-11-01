@@ -142,3 +142,38 @@ How to read the numbers:
 
 - **By length (held-out HC3 + MAGE):** 30-59 words AUROC 0.92, 3.2% of people's texts above the band; 60-99 words 0.99, 2.5%; 100-149 words 0.98, 0.7%; 150-249 words 0.996, 0%; 250+ words 0.98, 0.9%. We keep the minimum at 100 words: below it, people's texts were flagged three to four times as often. Between 100 and 150 words the answer carries a note that it is less accurate.
 - **Honest reading:** calibration on GPT-4 text went from badly over-sure (error 0.228) to close (0.041), and missed AI text below the band fell from 44.5% to 2.2%. The price is a wider band: 32% of people's GPT-4-set texts and 60% of the TOEFL essays now land in "can't tell". That is the honest answer for them. The big failure is writing the fit has never seen: with no news in training, 16 in 100 people's news articles were put above the band. Reworded AI text is still missed almost entirely.
+
+## Text round 3 — choosing the models, edge cases, fairness checks
+
+- **Built:**
+  - Compared three model pairs on the same 2,131 texts (every third text), with the round-2 recipe. SmolLM2-360M stayed: it was the most accurate and the fastest.
+
+| Pair | HC3 AUROC | GPT-4 AUROC | GPT-4 caught at 1 in 100 | People above band (HC3 / GPT-4 set) | Speed |
+|---|---|---|---|---|---|
+| SmolLM2-360M base + instruct | 0.995 | 0.980 | 83% | 0.0% / 0.8% | about 0.3-0.8 s per text |
+| GPT-2 + GPT-2 medium | 0.994 | 0.969 | 77% | 1.8% / 1.7% | similar |
+| Qwen2.5-0.5B base + instruct | 0.990 | 0.960 | 71% | 1.8% / 0.0% | about 3 times slower |
+
+  - A separate review found and fixed 22 edge cases, each with a test: short forms such as "Dr." and "U.S." no longer end a sentence; list items and headings are their own sentences; words in other alphabets and numbers such as "3.5" count as one word; the first word of each sentence now counts towards that sentence; the "only part was scored" note was shown when nothing was cut; very large or binary input is handled; every error gives JSON when asked.
+  - The cheap measures are now recomputed with the current rules every time we measure. 50 texts whose tidy-up changed were scored again.
+  - Sentences are listed only when they differ clearly from the whole text.
+  - Added essays and abstracts by US school and college students from the same study as the TOEFL essays, to compare fairly.
+  - The answer now always says how it did on writing it was never fitted on.
+- **Numbers (texts of 100 words or more):**
+
+| Held-out set | Texts | AUROC | Caught at 1 in 100 | Calibration error | People above band | People in band | AI above band (caught) | AI below band |
+|---|---|---|---|---|---|---|---|---|
+| HC3, same topics | 914 | 0.998 | 99.7% | 0.018 | 0.3% | 15% | 98.8% | 0.2% |
+| MAGE, GPT-4 | 717 | 0.969 | 79.9% | 0.039 | 0.6% | 32% | 74.5% | 2.5% |
+| MAGE reworded by another AI | 1,852 | 0.669 | 4.1% | 0.636 | 0.6% | 32% | 2.1% | 45.7% |
+| TOEFL essays, non-native students (all 91) | 91 | - | - | - | 3.3% | 56% | - | - |
+| US eighth-grade essays | 88 | - | - | - | 0% | 4.5% | - | - |
+| US college essays | 70 | - | - | - | 0% | 5.7% | - | - |
+| Stanford course abstracts | 145 | - | - | - | 0% | 5.5% | - | - |
+
+- **Writing it has never seen:** news left out of fitting, then tested: AUROC 0.74, 14% of people's news put above the band. The other three kinds stayed between 0% and 1%.
+- **Honest reading:**
+  - **Bias against non-native writers is real here too.** The typical TOEFL essay got 9%; the typical US student essay got under 1%. 3 in 100 TOEFL essays were put above the band, against none of 303 texts by US students. The wide band catches most of the rest as "can't tell", but that is still unequal treatment. This is why the caveat is printed every time.
+  - Reworded AI text is still missed. We did not try to fix this: the research says no detector can do so reliably.
+  - Kinds of writing the fit has not seen, such as news, can be flagged wrongly far more often.
+- **Tests:** 365 fast tests pass, plus 3 slow tests with the real models.

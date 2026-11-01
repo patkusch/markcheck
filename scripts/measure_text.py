@@ -66,8 +66,19 @@ def norm_kind(k: str) -> str:
     return KIND_MAP.get(k, KIND_MAP.get(k.lower(), k.lower()))
 
 
+# The same model under two names in different sources.
+MODEL_ALIASES = {"gpt4": "gpt-4", "gpt-3.5-turbo": "chatgpt"}
+NEWER = ("detectrlx", "beemo")
+
+
 def norm_model(m) -> str:
-    return str(m).strip() if m else "unknown"
+    m = str(m).strip() if m else "unknown"
+    return MODEL_ALIASES.get(m.lower(), m)
+
+
+def attack_name(att: str) -> str:
+    """Plain set name for an attack. Rewording by another AI is called "reworded"."""
+    return "reworded" if att == "paraphrase" else att
 
 
 def load(perf: str):
@@ -147,11 +158,15 @@ def assign(rows, train_on=("hc3", "mage"), reworded_train=False):
                 r["side"], r["set"] = "test", "mage_para"
         elif src == "raid":
             r["side"] = "train" if half("raid:" + r["doc_id"]) == 0 else "test"
-            r["set"] = "raid" if r["attack"] == "none" else "raid_" + r["attack"]
+            r["set"] = "raid" if r["attack"] == "none" else "raid_" + attack_name(r["attack"])
+        elif src in NEWER and "newer" in train_on:
+            # Only when asked: then these models are no longer unseen.
+            r["side"] = "train" if half(r["doc_id"]) == 0 else "test"
+            r["set"] = r["split"]
         else:
             r["side"], r["set"] = "test", r["split"] if r["split"] not in ("train", "heldout") else src
         if r["side"] == "train":
-            if src not in train_on:
+            if src not in train_on and not (src in NEWER and "newer" in train_on):
                 r["side"] = "unused"
             elif r["attack"] != "none" and not (reworded_train and r["label"] == 1):
                 r["side"] = "unused"
@@ -411,7 +426,7 @@ class Exp:
                 d = score(fit, ai + people)
                 d["by_model"] = {m: score(fit, [r for r in ai if r["model"] == m] + people)
                                  for m in sorted({r["model"] for r in ai})}
-                out[f"{src}_{att}"] = d
+                out[f"{src}_{attack_name(att)}"] = d
         return out
 
     def by_length(self, fit):
@@ -500,7 +515,8 @@ def main():
     ap.add_argument("--min-words", type=int, default=100)
     ap.add_argument("--full-words", type=int, default=150)
     ap.add_argument("--band", default="auto", help="'auto', 'auto_max' or 'lo,hi'")
-    ap.add_argument("--train-on", default="hc3+mage", help="sources to fit on, joined by +: hc3, mage, raid")
+    ap.add_argument("--train-on", default="hc3+mage",
+                    help="sources to fit on, joined by +: hc3, mage, raid, newer (DetectRL-X and Beemo)")
     ap.add_argument("--weights", default="source", choices=["none", "source", "source_label", "source_label_model"])
     ap.add_argument("--l2", type=float, default=1e-2)
     ap.add_argument("--reworded-train", action="store_true", help="also fit on reworded AI texts (train side)")
@@ -560,7 +576,9 @@ def write(a, exp, fit, res):
     toefl = po.get("toefl", {})
     nonnative = {k: v for k, v in po.items() if k not in ("us_students", "college", "cs224n")}
     nn_above = worst(nonnative, "people_above_band", float("nan"))
-    rew_main = rew.get("raid_paraphrase") or rew.get("mage_paraphrase") or {}
+    rew_main = rew.get("raid_reworded") or rew.get("mage_reworded") or {}
+    # Ship one pooled number per reworded set, with no breakdown that could coach anyone.
+    rew = {k: {kk: vv for kk, vv in v.items() if kk != "by_model"} for k, v in rew.items()}
     how = {
         "people's texts put above the band (similar topics)": in_100(h.get("people_above_band")),
         "AI texts caught above the band (similar topics)": in_100(h.get("ai_above_band")),
@@ -604,8 +622,8 @@ def write(a, exp, fit, res):
         unseen_bits.append(f"When one kind of writing was left out of fitting, {in_100(loko[worst_kind]['people_above_band'])} "
                            f"people's texts of the worst kind ({worst_kind}) were put above the band.")
     if rew_main:
-        unseen_bits.append(f"Text reworded by another AI is caught only {in_100(rew_main.get('ai_above_band'))} times: "
-                           f"rewording beats this check.")
+        unseen_bits.append(f"AI text reworded by another AI tool is mostly missed "
+                           f"(caught {in_100(rew_main.get('ai_above_band'))}).")
     if toefl:
         unseen_bits.append(f"Essays by non-native English students were put above the band {in_100(toefl.get('people_above_band'))} "
                            f"times and inside it {in_100(toefl.get('people_in_band'))} times.")

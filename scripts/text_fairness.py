@@ -122,7 +122,7 @@ def ai_set_name(r: dict) -> str | None:
     if s in names:
         return names[s]
     if s.startswith("raid_"):
-        return "reworded by another AI (RAID)" if s == "raid_paraphrase" else None
+        return "reworded by another AI (RAID)" if s in ("raid_reworded", "raid_paraphrase") else None
     if r.get("attack") not in (None, "none"):
         return None
     return s

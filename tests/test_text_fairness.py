@@ -41,4 +41,5 @@ def test_rate_shape():
 def test_altered_sets_other_than_rewording_are_left_out():
     assert tf.ai_set_name({"split": "raid", "set": "raid_homoglyph", "attack": "homoglyph"}) is None
     assert tf.ai_set_name({"split": "raid", "set": "raid_paraphrase", "attack": "paraphrase"})
+    assert tf.ai_set_name({"split": "raid", "set": "raid_reworded", "attack": "paraphrase"})
     assert tf.ai_set_name({"split": "mage", "set": "mage"}) == "GPT-4 (MAGE)"

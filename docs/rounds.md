@@ -177,3 +177,18 @@ How to read the numbers:
   - Reworded AI text is still missed. We did not try to fix this: the research says no detector can do so reliably.
   - Kinds of writing the fit has not seen, such as news, can be flagged wrongly far more often.
 - **Tests:** 365 fast tests pass, plus 3 slow tests with the real models.
+
+## Text round 4 (stopped early, 2026-11-01)
+
+What landed:
+- Scripts that download RAID samples and newer AI models' writing (download once; nothing gets committed).
+- Scripts that gather more essays by non-native English writers.
+- Measuring that splits results by AI model and by kind of writing.
+- The README accuracy table is now written straight from the stored results, so the two cannot drift apart.
+
+Not done yet:
+- The check has not been refitted on the new data. All numbers shown are still round 3's.
+- There are no leave-one-model-out or leave-one-kind-out results yet.
+- Reworded AI text has not been measured on RAID's reworded set yet. It is still caught only 2 times in 100.
+- Flag rates for non-native writers, with confidence ranges, have not been run on the larger set yet.
+- A test that the "How often" list names AI models the check never saw was written, but it was held back because it fails until the refit is done.

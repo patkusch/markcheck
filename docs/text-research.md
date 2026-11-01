@@ -111,3 +111,79 @@ These rules follow from the sources above:
 - **Bands:** a "can't tell" band, and a "likely AI" level set so that no more than about 1 in 100 held-out human texts reaches it.
 - **Length:** refuse below a minimum chosen from our length results.
 - **Packaging:** the models live in an optional extra, `pip install 'markcheck[text]'`, and are fetched once with `python -m markcheck.fetch_models --text`. After that, nothing goes online. Tests in CI use made-up scores, so they stay fast and offline.
+
+## Round 4 data sources
+
+In round 4 we added more AI models, more kinds of writing, and more writing by people who are learning English.
+This section says where each set comes from, what we may do with it, and how much we used.
+It was written on 2026-11-01.
+
+**Nothing here is committed to this project.**
+Every file is downloaded to `~/.cache/markcheck/textdata/` on your own computer and stays there.
+We use the texts only to measure and fit the check.
+
+### Sources we used
+
+| Source | Licence | AI models | Kinds of writing | Texts we used | Size on disk |
+|---|---|---|---|---|---|
+| [RAID](https://huggingface.co/datasets/liamdugan/raid) ([code](https://github.com/liamdugan/raid)) | MIT, on the dataset card [checked] | GPT-2, GPT-3, ChatGPT, GPT-4, Cohere, Cohere chat, Llama 2 chat, Mistral, Mistral chat, MPT, MPT chat (2019-2023) | abstracts, books, news, poetry, recipes, Reddit posts, reviews, Wikipedia | RAID_UNTOUCHED untouched, RAID_PARA reworded | RAID_DISK |
+| [DetectRL-X](https://huggingface.co/datasets/WUJUNCHAO/DetectRL-X) ([paper](https://aclanthology.org/2026.acl-long.1773/)) | MIT, on the dataset card [checked] | GPT-4o, Gemini 2.5 Flash, DeepSeek-V3, Qwen-Max (2024-2025) | academic writing, news, novels, web marketing (SEO), web text, Wikipedia | DRX_AI AI and DRX_HUM by people | 81 MB (English part only) |
+| [Beemo](https://huggingface.co/datasets/toloka/beemo) ([code](https://github.com/Toloka/beemo)) | MIT, on the dataset card and GitHub [checked]. The people's answers come from No Robots, which is CC BY-NC 4.0 (non-commercial). | Llama 2 (7B, 13B, 70B) chat, Gemma 2B and 7B, Mistral 7B, Mixtral 8x7B, Zephyr 7B, Tulu 2 (7B, 13B) (2023-2024) | answering questions, writing, rewriting, summarising | BEEMO_AI AI and BEEMO_HUM by people | 8 MB |
+| [PERSUADE 2.0](https://github.com/scrosseye/persuade_corpus_2.0) | CC BY 4.0, in the README [checked] | none: all by people | essays by US students in grades 6-12 | 400 by English learners, 400 by other students | 617 MB |
+| [ELLIPSE](https://github.com/scrosseye/ELLIPSE-Corpus) | CC BY 4.0, in the README [checked] | none: all by people | essays by English learners in grades 8-12 | 300 | 10 MB |
+
+What each one gives us:
+
+- **RAID** adds many older AI models and eight kinds of writing.
+  It also has a "paraphrase" set: AI texts reworded by another AI to dodge detectors.
+- **DetectRL-X** adds four of the newest models we could find with an open licence.
+  Each AI text was written from a person's text, and we keep both.
+- **Beemo** adds ten open chat models answering everyday requests that people also answered.
+- **PERSUADE 2.0** says, for every essay, whether the student is an English language learner (ELL).
+  That lets us compare learners with other students who wrote on the same prompt in the same grade.
+- **ELLIPSE** adds more essays by English learners, from the same research group.
+
+### How we sampled them
+
+- **RAID** is one 11.8 GB file, so we did not download it all.
+  We read 24 KB every 2 MB to map where each model and attack sits, then read small pieces only where we needed them, about RAID_DOWNLOADED in all.
+  We used only the labelled training file; the test file hides its answers.
+  We kept about RAID_PER_CELL texts per kind of writing and model, and about 190 reworded texts per kind of writing.
+  We left out texts made with a "repetition penalty", a setting RAID added to make detection harder; the rest mix the two ways RAID let models pick words (always the likeliest word, or a random likely word).
+  People's abstracts in RAID keep the page-width line breaks from arXiv, and its AI abstracts do not. We join those lines so the check cannot learn the line breaks instead of the writing.
+- **DetectRL-X** is sorted by language, so we read only the two stretches of its "general" file that hold English (about 95 MB of an 879 MB file).
+  We took 30 AI texts for each model and kind of writing, plus the person's text each was written from.
+- **Beemo**: 30 answers per model, plus the people's answers to the same requests.
+- **PERSUADE 2.0**: 400 essays by learners, chosen at random, each matched with an essay by a non-learner on the same prompt in the same grade.
+  "Non-learner" means the school did not mark the student as an English learner. It does not prove English is their first language.
+- **ELLIPSE**: 300 essays at random. We skipped 37 that are also in PERSUADE.
+- Every set keeps texts of at least 30 words, as before.
+
+### Sources we could not use
+
+| Source | Why not |
+|---|---|
+| [ICNALE](https://language.sakura.ne.jp/icnale/download.html) (essays by Asian learners of English) | You must fill in a registration form to get the password for the files. We do not sign up for things on your behalf. |
+| [Feedback Prize: English Language Learning](https://www.kaggle.com/competitions/feedback-prize-english-language-learning) | Needs a Kaggle account and agreeing to the competition rules. Its essays come from ELLIPSE, which we used instead. |
+| [M4](https://github.com/mbzuai-nlp/M4) and [M4GT-Bench](https://github.com/mbzuai-nlp/M4GT-Bench) | No licence on GitHub [checked]. |
+| [DetectRL](https://github.com/NLP2CT/DetectRL) (the 2024 version) | No licence on GitHub [checked]. Its 2026 follow-up, DetectRL-X, is MIT and we used that. |
+| "MIRAGE" | The dataset under that name on Hugging Face is about image editing, not text [checked]. We found no text set under that name with an open licence. |
+
+### How to rebuild it
+
+Run these from the project folder, in this order.
+`-I` keeps Python from loading code from the download folders.
+
+```
+.venv/bin/python -I scripts/text_fetch_newmodels.py
+.venv/bin/python -I scripts/text_fetch_fairness.py
+.venv/bin/python -I scripts/text_fetch_raid.py
+.venv/bin/python scripts/text_data.py
+.venv/bin/python scripts/text_features.py HuggingFaceTB/SmolLM2-360M HuggingFaceTB/SmolLM2-360M-Instruct
+```
+
+- Each fetch script picks its sample with a fixed seed, so it picks the same texts again.
+- `text_data.py` writes the old rows first, unchanged, then the new ones. Old row numbers never move, so old scores stay valid.
+- Every row now says where it came from, which model wrote it ("human" for people), the kind of writing, whether it was reworded, and which source document it belongs to.
+  Splitting by source document keeps an AI text and the person's text it came from on the same side.
+- Scoring the new texts took SCORE_TIME on this laptop's processor.

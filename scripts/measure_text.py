@@ -39,18 +39,42 @@ def load(perf: str):
     return out
 
 
+def text_half(t: str) -> int:
+    import hashlib
+    return int(hashlib.sha256(t.encode()).hexdigest()[:8], 16) % 2
+
+
+def mix_in_mage(rows, hold_domain=None):
+    """Move half of MAGE (by text hash) into training. Reworded copies of people's texts in
+    the training half are dropped from the rewording test, so no text is both fitted and tested."""
+    train_people = {r["text"] for r in rows if r["split"] == "mage" and r["label"] == 0
+                    and text_half(r["text"]) == 0}
+    out = []
+    for r in rows:
+        r = dict(r)
+        if r["split"] == "mage" and text_half(r["text"]) == 0:
+            if hold_domain and r["domain"] == hold_domain:
+                continue
+            r["split"] = "train"
+        elif r["split"] == "mage_para" and r["label"] == 0 and r["text"] in train_people:
+            continue
+        out.append(r)
+    return out
+
+
 def matrix(rows, feats, fill):
     return np.array([[fill[k] if r[k] is None else r[k] for k in feats] for r in rows], float)
 
 
-def fit_logistic(X, y, l2=1e-2, iters=50):
+def fit_logistic(X, y, l2=1e-2, iters=50, weights=None):
     n, d = X.shape
+    sw = np.ones(n) if weights is None else np.asarray(weights, float)
     A = np.hstack([X, np.ones((n, 1))])
     w = np.zeros(d + 1)
     for _ in range(iters):
         p = 1 / (1 + np.exp(-A @ w))
-        g = A.T @ (p - y) + l2 * np.r_[w[:-1], 0]
-        H = (A * (p * (1 - p))[:, None]).T @ A + l2 * np.diag(np.r_[np.ones(d), 0])
+        g = A.T @ (sw * (p - y)) + l2 * np.r_[w[:-1], 0]
+        H = (A * (sw * p * (1 - p))[:, None]).T @ A + l2 * np.diag(np.r_[np.ones(d), 0])
         w -= np.linalg.solve(H, g)
     return w[:-1], w[-1]
 
@@ -123,22 +147,43 @@ def main():
     ap.add_argument("--full-words", type=int, default=150)
     ap.add_argument("--band", default="0.35,0.65")
     ap.add_argument("--write", action="store_true")
+    ap.add_argument("--train-on", default="hc3", choices=["hc3", "hc3+mage"],
+                    help="hc3+mage also fits on half of MAGE (by text hash); the other half stays held out")
+    ap.add_argument("--hold-domain", default=None, help="leave this MAGE kind of writing out of fitting")
     a = ap.parse_args()
     feats = a.features.split(",")
     rows = load(a.perf)
+    if a.train_on == "hc3+mage":
+        rows = mix_in_mage(rows, a.hold_domain)
     tr = [r for r in rows if r["split"] == "train" and r["n_words"] >= a.min_words]
     fill = {k: float(np.median([r[k] for r in tr if r[k] is not None])) for k in feats}
     Xtr = matrix(tr, feats, fill)
     mu, sd = Xtr.mean(0), Xtr.std(0) + 1e-9
     ytr = np.array([r["label"] for r in tr], float)
-    coef, b = fit_logistic((Xtr - mu) / sd, ytr)
+    # Give each source (HC3, MAGE) equal total weight, so the bigger one does not set the curve alone.
+    src = np.array([0 if r["domain"] in ("finance", "medicine", "wiki_csai", "reddit_eli5") else 1 for r in tr])
+    wts = np.where(src == 0, 0.5 / max((src == 0).sum(), 1), 0.5 / max((src == 1).sum(), 1)) * len(tr)
+    if (src == 1).sum() == 0:
+        wts = np.ones(len(tr))
+    coef, b = fit_logistic((Xtr - mu) / sd, ytr, weights=wts)
 
     def predict(rs):
         X = (matrix(rs, feats, fill) - mu) / sd
         return 1 / (1 + np.exp(-(X @ coef + b)))
 
-    band = tuple(float(v) for v in a.band.split(","))
-    print(f"pair {PAIRS.get(a.perf, '?')} / {a.perf}; features {feats}; min words {a.min_words}")
+    if a.band == "auto":
+        # Top of the band: no lower than 65%, and high enough that at most 1 in 100 people's
+        # training texts reach it. Bottom: no higher than 35%, and low enough that at most
+        # 1 in 100 AI training texts fall under it.
+        ptr = predict(tr)
+        hi = max(0.65, float(np.quantile(ptr[ytr == 0], 0.99)))
+        lo = min(0.35, float(np.quantile(ptr[ytr == 1], 0.01)))
+        band = (round(lo, 2), round(hi + 0.005, 2))
+    else:
+        band = tuple(float(v) for v in a.band.split(","))
+    print("band", band)
+    print(f"pair {PAIRS.get(a.perf, '?')} / {a.perf}; features {feats}; min words {a.min_words}; "
+          f"train on {a.train_on}; held-out domain {a.hold_domain}")
     print("coef", dict(zip(feats, np.round(coef, 3))), "intercept", round(float(b), 3))
     results = {}
     for split in ["train", "heldout", "mage", "mage_para", "toefl"]:
@@ -179,9 +224,30 @@ def in_100(x):
     return f"{round(100 * x)} in 100" if x >= 0.005 else "fewer than 1 in 100"
 
 
+def unseen_kinds(a) -> dict:
+    """Refit with each MAGE kind of writing left out, and test on that kind: how the check
+    does on writing it has never seen. Runs this script again once per kind."""
+    import re
+    import subprocess
+    import sys
+    out = {}
+    for dom in ("cnn", "dialogsum", "imdb", "pubmed"):
+        res = subprocess.run([sys.executable, __file__, a.perf, "--features", a.features, "--min-words",
+                              str(a.min_words), "--band", a.band, "--train-on", "hc3+mage",
+                              "--hold-domain", dom], capture_output=True, text=True, check=True).stdout
+        line = next(ln for ln in res.splitlines() if ln.startswith(f"   {dom} "))
+        out[dom] = {k: float(v) for k, v in re.findall(r"(\w+)=([0-9.]+)", line) if k != "n"}
+    return out
+
+
+KIND_NAMES = {"cnn": "news", "dialogsum": "dialogue summaries", "imdb": "film reviews", "pubmed": "medical abstracts"}
+
+
 def write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict, tr):
     h, m, mp = results["heldout"], results["mage"], results.get("mage_para", {})
     tf = results.get("toefl", {})
+    unseen = unseen_kinds(a) if a.train_on == "hc3+mage" else {}
+    worst = max(unseen, key=lambda d: unseen[d]["people_above_band"]) if unseen else None
     cal = {
         "models": [PAIRS[a.perf], a.perf],
         "features": feats,
@@ -195,17 +261,24 @@ def write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict,
         "heldout": {
             "how_often_wrong": {
                 "people's texts put above the band (similar topics)": in_100(h["people_above_band"]),
+                "AI texts caught above the band (similar topics)": in_100(h["ai_above_band"]),
                 "AI texts put below the band (similar topics)": in_100(h["ai_below_band"]),
-                "people's texts put above the band (other topics, newer AI)": in_100(m["people_above_band"]),
-                "AI texts put below the band (other topics, newer AI)": in_100(m["ai_below_band"]),
+                "people's texts put above the band (news, reviews, summaries, abstracts; GPT-4)": in_100(m["people_above_band"]),
+                "AI texts caught above the band (news, reviews, summaries, abstracts; GPT-4)": in_100(m["ai_above_band"]),
+                "AI texts put below the band (news, reviews, summaries, abstracts; GPT-4)": in_100(m["ai_below_band"]),
                 "AI texts reworded by another AI, caught above the band": in_100(mp.get("ai_above_band", 0)),
                 "essays by non-native English students put above the band": in_100(tf.get("people_above_band", 0)),
+                **({f"people's {KIND_NAMES[worst]} put above the band when that kind of writing was left "
+                    f"out of fitting (the worst case we tried)": in_100(unseen[worst]["people_above_band"])}
+                   if worst else {}),
             },
+            "unseen_kinds": unseen,
             "metrics": results,
             "by_length": by_len,
         },
-        "data_note": ("The chance is fitted on public example answers by people and by ChatGPT (HC3, 2023), "
-                      "half AI and half people. It holds only for similar text with a similar mix; "
+        "data_note": ("The chance is fitted on public examples by people and by AI: answers from HC3 "
+                      "(ChatGPT, 2023) and news, reviews, dialogue summaries and medical abstracts from MAGE "
+                      "(GPT-4), half AI and half people. It holds only for similar text with a similar mix; "
                       "where AI text is rarer, the chance is lower than shown."),
     }
     out = ROOT / "src" / "markcheck" / "data" / "text_calibration.json"

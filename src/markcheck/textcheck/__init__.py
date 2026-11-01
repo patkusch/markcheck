@@ -141,27 +141,44 @@ def contributions(x: list[float], cal: dict) -> dict[str, float]:
             for name, v, mu, sd, w in zip(cal["features"], x, cal["mean"], cal["std"], cal["coef"])}
 
 
+# Measures that all describe how predictable the words are. They overlap, so the fitted
+# weights of each one alone mean little; we report their combined effect as one reason.
+PREDICTABILITY = ("bino", "top10", "fdg", "logppl_perf", "logppl_obs", "xent")
+
+
 def reasons_for(stats, spread: float | None, cal: dict, x: list[float] | None = None) -> list[str]:
     """Reasons from this text's own numbers, biggest effect first, in the direction the model used them."""
     ref = cal["reference"]
     x = x if x is not None else feature_vector(stats, spread, cal)
     contrib = contributions(x, cal)
-    values = {"top10": stats.top10, "bino": stats.binoculars, "spread": spread}
+    groups: dict[str, float] = {}
+    for name, c in contrib.items():
+        key = "predictability" if name in PREDICTABILITY else name
+        groups[key] = groups.get(key, 0.0) + c
     out = []
-    for name, c in sorted(contrib.items(), key=lambda kv: -abs(kv[1])):
-        if name not in _LOOKS:
-            continue
-        if name == "spread" and spread is None:
-            out.append("There were too few sentences to judge how even their lengths were.")
-            continue
-        if abs(c) < 0.25:
-            lead = {"top10": "Word predictability", "bino": "Predictability compared with a chat model",
-                    "spread": "Sentence length"}[name]
-            out.append(f"{lead} hardly moved the estimate: {_describe(name, values[name], ref)}.")
-            continue
-        lead = _LOOKS[name][0] if _looks_like_ai(name, values[name], ref) else _LOOKS[name][1]
+    for key, c in sorted(groups.items(), key=lambda kv: -abs(kv[1])):
         way = "raised" if c > 0 else "lowered"
-        out.append(f"{lead}, which {way} the estimate: {_describe(name, values[name], ref)}.")
+        small = abs(c) < 0.25
+        if key == "predictability":
+            facts = (f"{_describe('top10', stats.top10, ref)}; and {_describe('bino', stats.binoculars, ref)}")
+            if small:
+                out.append(f"How predictable the words were hardly moved the estimate: {facts}.")
+            else:
+                lead = ("Word choices were very predictable for a language model"
+                        if _looks_like_ai("bino", stats.binoculars, ref)
+                        else "Word choices were often surprising for a language model")
+                out.append(f"{lead}, which {way} the estimate: {facts}.")
+        elif key == "spread":
+            if spread is None:
+                out.append("There were too few sentences to judge how even their lengths were.")
+            elif small:
+                out.append(f"Sentence length hardly moved the estimate: {_describe('spread', spread, ref)}.")
+            else:
+                lead = _LOOKS["spread"][0] if _looks_like_ai("spread", spread, ref) else _LOOKS["spread"][1]
+                out.append(f"{lead}, which {way} the estimate: {_describe('spread', spread, ref)}.")
+        elif key == "log_tokens" and not small:
+            out.append(f"The length of the text ({stats.n_tokens} word pieces scored) {way} the estimate a little; "
+                       f"our examples of different lengths behaved differently.")
     return out
 
 

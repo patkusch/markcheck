@@ -150,7 +150,7 @@ def test_scored_output_layout(fake):
     assert m, first
     assert (m.group(2), m.group(3)) == ("35", "65")
     for heading in ("Why:", "Sentences that moved the estimate most:",
-                    "How often this check is wrong (held-out tests):"):
+                    "How often this check is right and wrong (held-out tests):"):
         assert heading in out
     assert "- people's texts wrongly put above the band: 3 in 100" in out
     assert "- AI texts put below the band: 8 in 100" in out
@@ -165,7 +165,7 @@ def test_scored_output_with_shipped_calibration(monkeypatch):
     code, out, _ = run(["text", long_text()])
     assert code == 0
     assert HEADLINE.match(out.splitlines()[0])
-    assert "How often this check is wrong (held-out tests):" in out
+    assert "How often this check is right and wrong (held-out tests):" in out
     assert out.rstrip().splitlines()[-1] == CAVEAT
 
 

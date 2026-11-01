@@ -93,7 +93,7 @@ def render_text(res: TextResult) -> str:
             for s in res.sentences:
                 lines.append(f"- \"{s['text']}\"")
                 lines.append(f"  {s['effect'][:1].upper()}{s['effect'][1:]}: {s['why']}.")
-        lines += ["", "How often this check is wrong (held-out tests):"]
+        lines += ["", "How often this check is right and wrong (held-out tests):"]
         lines += _rate_lines(res.error_rates) or ["- Not measured yet."]
         if res.notes:
             lines += [""]

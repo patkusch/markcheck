@@ -33,6 +33,9 @@ After that it runs on your computer and never goes online.
 """
 
 KIND = "text_estimate"
+# Read at most this much. Only the first 512 word pieces are scored anyway.
+MAX_BYTES = 1_000_000
+CUT_NOTE = "The input was longer than 1 MB; only its first 1 MB was read."
 
 
 def _plain_os_error(exc: OSError) -> str:
@@ -40,31 +43,48 @@ def _plain_os_error(exc: OSError) -> str:
     return plain_os_error(exc)
 
 
-def read_input(args, stdin=None) -> tuple[str | None, str | None]:
-    """Return (text, problem). Exactly one of them is None."""
+def _decode(raw: bytes, cut: bool) -> str:
+    try:
+        return raw.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        if cut and exc.start >= len(raw) - 3:  # the 1 MB cut fell inside one character
+            return raw[:exc.start].decode("utf-8-sig")
+        raise
+
+
+def read_input(args, stdin=None) -> tuple[str | None, str | None, str | None]:
+    """Return (text, problem, note). Exactly one of text and problem is None; note says if the input was cut."""
     stdin = sys.stdin if stdin is None else stdin
+    note = None
     if args.file and args.text is not None:
-        return None, "give the text or --file, not both."
+        return None, "give the text or --file, not both.", None
     if args.file:
         try:
-            raw = Path(args.file).read_bytes()
+            with open(args.file, "rb") as fh:
+                raw = fh.read(MAX_BYTES + 1)
         except OSError as exc:
-            return None, f"could not read {args.file}: {_plain_os_error(exc)}."
+            return None, f"could not read {args.file}: {_plain_os_error(exc)}.", None
+        cut = len(raw) > MAX_BYTES
         try:
-            text = raw.decode("utf-8-sig")
+            text = _decode(raw[:MAX_BYTES], cut)
         except UnicodeDecodeError:
-            return None, f"could not read {args.file}: it is not plain text saved as UTF-8."
+            text = None
+        if text is None or "\0" in text:  # NUL bytes mean a binary file, even if it decodes
+            return None, f"could not read {args.file}: it is not plain text saved as UTF-8.", None
+        note = CUT_NOTE if cut else None
     elif args.text == "-" or (args.text is None and stdin is not None and not stdin.isatty()):
         if stdin is None:
-            return None, "no text was given."
-        text = stdin.read()
+            return None, "no text was given.", None
+        text = stdin.read(MAX_BYTES + 1)
+        if len(text) > MAX_BYTES:
+            text, note = text[:MAX_BYTES], CUT_NOTE
     elif args.text is None:
-        return None, "no text was given. Pass the text, use --file, or pipe it in with '-'."
+        return None, "no text was given. Pass the text, use --file, or pipe it in with '-'.", None
     else:
         text = args.text
     if not text.strip():
-        return None, "the text is empty."
-    return text, None
+        return None, "the text is empty.", None
+    return text, None, note
 
 
 def _rate_lines(rates: dict, indent: str = "") -> list[str]:
@@ -111,8 +131,23 @@ def error_json(message: str) -> dict:
             "probability_ai": None, "caveat": CAVEAT}
 
 
+class _ArgError(Exception):
+    pass
+
+
+class _Parser(argparse.ArgumentParser):
+    """Argument mistakes still give JSON when --json was asked for."""
+    want_json = False
+
+    def error(self, message: str):
+        if self.want_json:
+            raise _ArgError(message)
+        super().error(message)
+
+
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
+    argv = sys.argv[1:] if argv is None else argv
+    ap = _Parser(
         prog="markcheck text",
         description="Estimate the chance that a text was AI-written, with reasons and how often "
                     "this check is wrong. It is an estimate, not a finding about a person.",
@@ -122,9 +157,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("text", nargs="?", help="the text to check, or '-' to read it from standard input")
     ap.add_argument("--file", help="read the text from this file (plain text, UTF-8)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON instead of text")
-    args = ap.parse_args(argv)
+    ap.want_json = "--json" in argv
+    try:
+        args = ap.parse_args(argv)
+    except _ArgError as exc:
+        return _fail(str(exc), True)
 
-    text, problem = read_input(args)
+    text, problem, note = read_input(args)
     if problem:
         return _fail(problem, args.json)
     try:
@@ -135,6 +174,10 @@ def main(argv: list[str] | None = None) -> int:
         return _fail("The language models for the text check could not be loaded. Install the extra "
                      "libraries with: pip install 'markcheck[text]', then fetch the models once with: "
                      "python -m markcheck.fetch_models --text", args.json)
+    except Exception as exc:  # noqa: BLE001 - one plain line (and JSON) instead of a traceback
+        return _fail(f"the text could not be scored ({type(exc).__name__}: {exc}).", args.json)
+    if note:
+        res.notes.insert(0, note)
     if args.json:
         print(json.dumps(to_json(res), indent=2))
     else:

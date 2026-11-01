@@ -17,6 +17,10 @@ from pathlib import Path
 
 import numpy as np
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from markcheck.textcheck.features import sentence_length_spread, words  # noqa: E402
+
 DATA = Path.home() / ".cache" / "markcheck" / "textdata"
 ROOT = Path(__file__).resolve().parents[1]
 LENGTH_BINS = [(30, 59), (60, 99), (100, 149), (150, 249), (250, 10**6)]
@@ -35,6 +39,10 @@ def load(perf: str):
         r = dict(rows[f["id"]])
         r.update(f)
         r["log_tokens"] = math.log(max(r["n_tokens"], 1))
+        # Cheap measures are recomputed with the current rules, so a change to sentence or
+        # word rules is picked up without rescoring with the models.
+        r["n_words"] = len(words(r["text"]))
+        r["spread"] = sentence_length_spread(r["text"])
         out.append(r)
     return out
 
@@ -150,9 +158,14 @@ def main():
     ap.add_argument("--train-on", default="hc3", choices=["hc3", "hc3+mage"],
                     help="hc3+mage also fits on half of MAGE (by text hash); the other half stays held out")
     ap.add_argument("--hold-domain", default=None, help="leave this MAGE kind of writing out of fitting")
+    ap.add_argument("--same-texts-as", default=None,
+                    help="use only texts also scored by this other performer model (fair comparisons)")
     a = ap.parse_args()
     feats = a.features.split(",")
     rows = load(a.perf)
+    if a.same_texts_as:
+        keep = {r["id"] for r in load(a.same_texts_as)}
+        rows = [r for r in rows if r["id"] in keep]
     if a.train_on == "hc3+mage":
         rows = mix_in_mage(rows, a.hold_domain)
     tr = [r for r in rows if r["split"] == "train" and r["n_words"] >= a.min_words]

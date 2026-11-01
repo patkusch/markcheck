@@ -14,7 +14,7 @@
   "mean": [
     0.8323204674611673,
     0.8368713935881004,
-    0.41340868500988787,
+    0.4076038078248122,
     -0.5387840003884239,
     2.174668267240016,
     5.530814070365094
@@ -22,26 +22,26 @@
   "std": [
     0.15791546313545185,
     0.09587236458615678,
-    0.1789891172593532,
+    0.1738709982705686,
     1.4673957068511456,
     0.779409885551781,
     0.4053923631629914
   ],
   "coef": [
-    -6.117447929626518,
-    -1.0234182657023638,
-    -0.8581963324446261,
-    -0.5870957855288587,
-    -1.5482680579549823,
-    0.4850195930112043
+    -6.09066688169474,
+    -0.7022998494172251,
+    -1.0402578610774935,
+    -0.5693639708544053,
+    -1.2527162104688279,
+    0.4862589925146501
   ],
-  "intercept": 2.0034492621811393,
+  "intercept": 1.9750101170624554,
   "fill": {
-    "spread": 0.3778645556980738
+    "spread": 0.37474712286302214
   },
   "uncertain_band": [
     0.07,
-    0.83
+    0.84
   ],
   "min_words": 100,
   "full_confidence_words": 150,
@@ -55,8 +55,8 @@
       "person": 0.9829110777775084
     },
     "spread": {
-      "ai": 0.3234855668709012,
-      "person": 0.4672598744310768
+      "ai": 0.3222188622453329,
+      "person": 0.4574270555836659
     }
   },
   "heldout": {
@@ -65,159 +65,159 @@
       "AI texts caught above the band (similar topics)": "99 in 100",
       "AI texts put below the band (similar topics)": "fewer than 1 in 100",
       "people's texts put above the band (news, reviews, summaries, abstracts; GPT-4)": "1 in 100",
-      "AI texts caught above the band (news, reviews, summaries, abstracts; GPT-4)": "73 in 100",
+      "AI texts caught above the band (news, reviews, summaries, abstracts; GPT-4)": "74 in 100",
       "AI texts put below the band (news, reviews, summaries, abstracts; GPT-4)": "2 in 100",
       "AI texts reworded by another AI, caught above the band": "2 in 100",
       "essays by non-native English students put above the band": "3 in 100",
-      "people's news put above the band when that kind of writing was left out of fitting (the worst case we tried)": "16 in 100"
+      "people's news put above the band when that kind of writing was left out of fitting (the worst case we tried)": "15 in 100"
     },
     "unseen_kinds": {
       "cnn": {
-        "auroc": 0.716,
-        "tpr_at_1pct_fpr": 0.056,
-        "ece": 0.217,
-        "people_above_band": 0.161,
+        "auroc": 0.741,
+        "tpr_at_1pct_fpr": 0.047,
+        "ece": 0.2,
+        "people_above_band": 0.151,
         "people_in_band": 0.269,
-        "ai_above_band": 0.57,
-        "ai_below_band": 0.318
+        "ai_above_band": 0.617,
+        "ai_below_band": 0.28
       },
       "dialogsum": {
-        "auroc": 0.992,
+        "auroc": 0.99,
         "tpr_at_1pct_fpr": 0.833,
-        "ece": 0.116,
-        "people_above_band": 0.024,
-        "people_in_band": 0.598,
-        "ai_above_band": 0.879,
+        "ece": 0.109,
+        "people_above_band": 0.0,
+        "people_in_band": 0.561,
+        "ai_above_band": 0.818,
         "ai_below_band": 0.0
       },
       "imdb": {
         "auroc": 0.999,
         "tpr_at_1pct_fpr": 0.961,
-        "ece": 0.088,
+        "ece": 0.084,
         "people_above_band": 0.0,
         "people_in_band": 0.037,
-        "ai_above_band": 0.777,
+        "ai_above_band": 0.796,
         "ai_below_band": 0.0
       },
       "pubmed": {
-        "auroc": 0.982,
-        "tpr_at_1pct_fpr": 0.864,
-        "ece": 0.028,
+        "auroc": 0.99,
+        "tpr_at_1pct_fpr": 0.761,
+        "ece": 0.027,
         "people_above_band": 0.01,
-        "people_in_band": 0.17,
-        "ai_above_band": 0.818,
-        "ai_below_band": 0.034
+        "people_in_band": 0.172,
+        "ai_above_band": 0.83,
+        "ai_below_band": 0.011
       }
     },
     "metrics": {
       "train": {
         "n": 1614,
-        "auroc": 0.9885476095567901,
-        "tpr_at_1pct_fpr": 0.8924611973392461,
-        "ece": 0.01127852448025984,
+        "auroc": 0.988921310944468,
+        "tpr_at_1pct_fpr": 0.8869179600886918,
+        "ece": 0.012315493179390161,
         "people_above_band": 0.009831460674157303,
         "people_in_band": 0.25280898876404495,
-        "ai_below_band": 0.012195121951219513,
-        "ai_above_band": 0.8891352549889135,
-        "ai_in_band": 0.09866962305986696
+        "ai_below_band": 0.011086474501108648,
+        "ai_above_band": 0.885809312638581,
+        "ai_in_band": 0.10310421286031042
       },
       "heldout": {
         "n": 914,
-        "auroc": 0.9981035512950407,
-        "tpr_at_1pct_fpr": 0.9948717948717949,
-        "ece": 0.018367143112563943,
+        "auroc": 0.998046398046398,
+        "tpr_at_1pct_fpr": 0.9965811965811966,
+        "ece": 0.01779280713122385,
         "people_above_band": 0.00303951367781155,
-        "people_in_band": 0.16109422492401215,
+        "people_in_band": 0.1519756838905775,
         "ai_below_band": 0.0017094017094017094,
-        "ai_above_band": 0.9897435897435898,
-        "ai_in_band": 0.008547008547008548
+        "ai_above_band": 0.9880341880341881,
+        "ai_in_band": 0.010256410256410256
       },
       "mage": {
-        "n": 721,
-        "auroc": 0.964270323514021,
-        "tpr_at_1pct_fpr": 0.7747252747252747,
-        "ece": 0.04100299092747038,
-        "people_above_band": 0.008403361344537815,
-        "people_in_band": 0.31932773109243695,
-        "ai_below_band": 0.02197802197802198,
-        "ai_above_band": 0.7335164835164835,
-        "ai_in_band": 0.2445054945054945
+        "n": 720,
+        "auroc": 0.9687692925052476,
+        "tpr_at_1pct_fpr": 0.7994505494505495,
+        "ece": 0.03885726172364608,
+        "people_above_band": 0.0056179775280898875,
+        "people_in_band": 0.3202247191011236,
+        "ai_below_band": 0.024725274725274724,
+        "ai_above_band": 0.7445054945054945,
+        "ai_in_band": 0.23076923076923078
       },
       "mage_para": {
-        "n": 1856,
-        "auroc": 0.665182951099052,
-        "tpr_at_1pct_fpr": 0.03468979319546364,
-        "ece": 0.6350837923239842,
-        "people_above_band": 0.008403361344537815,
-        "people_in_band": 0.31932773109243695,
-        "ai_below_band": 0.44496330887258173,
-        "ai_above_band": 0.0200133422281521,
-        "ai_in_band": 0.5350233488992662
+        "n": 1855,
+        "auroc": 0.67131645816312,
+        "tpr_at_1pct_fpr": 0.04136090727151434,
+        "ece": 0.6350899337918904,
+        "people_above_band": 0.0056179775280898875,
+        "people_in_band": 0.3202247191011236,
+        "ai_below_band": 0.4563042028018679,
+        "ai_above_band": 0.02134756504336224,
+        "ai_in_band": 0.5223482321547699
       },
       "toefl": {
         "n": 63,
         "auroc": NaN,
         "tpr_at_1pct_fpr": NaN,
-        "ece": 0.20313321635249698,
+        "ece": 0.20062251957350483,
         "people_above_band": 0.031746031746031744,
-        "people_in_band": 0.6031746031746031
+        "people_in_band": 0.5714285714285714
       }
     },
     "by_length": {
       "30-59": {
         "n": 143,
-        "auroc": 0.9164444444444444,
+        "auroc": 0.9124444444444444,
         "tpr_at_1pct_fpr": 0.2777777777777778,
-        "ece": 0.07342630403706629,
+        "ece": 0.07327916115771538,
         "people_above_band": 0.032,
-        "people_in_band": 0.072,
+        "people_in_band": 0.08,
         "ai_below_band": 0.16666666666666666,
         "ai_above_band": 0.5,
         "ai_in_band": 0.3333333333333333
       },
       "60-99": {
-        "n": 207,
-        "auroc": 0.9893004115226337,
-        "tpr_at_1pct_fpr": 0.6222222222222222,
-        "ece": 0.03926452465227395,
-        "people_above_band": 0.024691358024691357,
-        "people_in_band": 0.09259259259259259,
+        "n": 208,
+        "auroc": 0.9886843899113837,
+        "tpr_at_1pct_fpr": 0.6,
+        "ece": 0.044944400751665094,
+        "people_above_band": 0.024539877300613498,
+        "people_in_band": 0.10429447852760736,
         "ai_below_band": 0.0,
-        "ai_above_band": 0.8444444444444444,
-        "ai_in_band": 0.15555555555555556
+        "ai_above_band": 0.8222222222222222,
+        "ai_in_band": 0.17777777777777778
       },
       "100-149": {
-        "n": 456,
-        "auroc": 0.9806609049313676,
-        "tpr_at_1pct_fpr": 0.8971428571428571,
-        "ece": 0.025966115264271682,
-        "people_above_band": 0.0071174377224199285,
-        "people_in_band": 0.1601423487544484,
+        "n": 455,
+        "auroc": 0.9828571428571429,
+        "tpr_at_1pct_fpr": 0.9142857142857143,
+        "ece": 0.021670045279396397,
+        "people_above_band": 0.007142857142857143,
+        "people_in_band": 0.16071428571428573,
         "ai_below_band": 0.022857142857142857,
-        "ai_above_band": 0.8914285714285715,
-        "ai_in_band": 0.08571428571428572
+        "ai_above_band": 0.8971428571428571,
+        "ai_in_band": 0.08
       },
       "150-249": {
         "n": 705,
-        "auroc": 0.99560795684711,
+        "auroc": 0.9961089908961047,
         "tpr_at_1pct_fpr": 0.9753320683111955,
-        "ece": 0.023743435745970803,
+        "ece": 0.022455473957785424,
         "people_above_band": 0.0,
-        "people_in_band": 0.17415730337078653,
+        "people_in_band": 0.16853932584269662,
         "ai_below_band": 0.0056925996204933585,
-        "ai_above_band": 0.9278937381404174,
-        "ai_in_band": 0.06641366223908918
+        "ai_above_band": 0.9316888045540797,
+        "ai_in_band": 0.06261859582542695
       },
       "250-": {
         "n": 474,
-        "auroc": 0.9768142824020404,
-        "tpr_at_1pct_fpr": 0.8582995951417004,
-        "ece": 0.035586898560039736,
-        "people_above_band": 0.00881057268722467,
-        "people_in_band": 0.4008810572687225,
-        "ai_below_band": 0.008097165991902834,
+        "auroc": 0.9793290410030498,
+        "tpr_at_1pct_fpr": 0.8623481781376519,
+        "ece": 0.03112292980744048,
+        "people_above_band": 0.004405286343612335,
+        "people_in_band": 0.3920704845814978,
+        "ai_below_band": 0.012145748987854251,
         "ai_above_band": 0.8137651821862348,
-        "ai_in_band": 0.17813765182186234
+        "ai_in_band": 0.17408906882591094
       }
     }
   },

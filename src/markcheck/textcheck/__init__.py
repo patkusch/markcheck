@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from importlib import resources
 
 from .features import normalise, sentence_length_spread, sentences, words
+from .scorer import MAX_TOKENS
 
 CAVEAT = ("This is an estimate. It is wrong sometimes, it can be unfair to people writing in "
           "a language that is not their first, and it should not be the only basis for any "
@@ -87,15 +88,27 @@ def band_of(p: float, cal: dict) -> str:
     return "uncertain"
 
 
-def pct(p: float) -> str:
-    """Whole percent, never 0% or 100%: the check is never that sure."""
-    return f"{min(99, max(1, round(100 * p)))}%"
+def pct(p: float, digits: int = 0) -> str:
+    """Percent, never 0% or 100%: the check is never that sure. Halves round up (64.5 -> 65)."""
+    step = 10 ** digits
+    v = min(100 * step - 1, max(1, math.floor(100 * step * p + 0.5))) / step
+    return f"{v:.{digits}f}%"
+
+
+def _pcts(*ps: float) -> list[str]:
+    """Percents for numbers shown side by side; one decimal if whole percents would hide a difference."""
+    for digits in (0, 1, 2):
+        out = [pct(p, digits) for p in ps]
+        if all((out[i] == out[j]) == (ps[i] == ps[j]) for i in range(len(ps)) for j in range(i)):
+            return out
+    return out
 
 
 def headline(p: float, band: str, cal: dict) -> str:
     lo, hi = cal["uncertain_band"]
-    base = (f"Estimated chance this was AI-written: {pct(p)} "
-            f"(uncertain band {pct(lo)}-{pct(hi)} means we can't tell).")
+    sp, slo, shi = _pcts(p, lo, hi)
+    base = (f"Estimated chance this was AI-written: {sp} "
+            f"(uncertain band {slo}-{shi} means we can't tell).")
     tail = {"likely_ai": "This is above the uncertain band: it looks more like AI writing than not.",
             "unlikely_ai": "This is below the uncertain band: it looks less like AI writing than not.",
             "uncertain": "This is inside the uncertain band, so we can't tell."}[band]
@@ -161,11 +174,14 @@ def reasons_for(stats, spread: float | None, cal: dict, x: list[float] | None = 
         small = abs(c) < 0.25
         if key == "predictability":
             facts = (f"{_describe('top10', stats.top10, ref)}; and {_describe('bino', stats.binoculars, ref)}")
+            looks_ai = _looks_like_ai("bino", stats.binoculars, ref)
             if small:
                 out.append(f"How predictable the words were hardly moved the estimate: {facts}.")
+            elif looks_ai != (c > 0):
+                # The measures pulled against what the main one suggests; say only what they did.
+                out.append(f"Taken together, how predictable the words were {way} the estimate: {facts}.")
             else:
-                lead = ("Word choices were very predictable for a language model"
-                        if _looks_like_ai("bino", stats.binoculars, ref)
+                lead = ("Word choices were very predictable for a language model" if looks_ai
                         else "Word choices were often surprising for a language model")
                 out.append(f"{lead}, which {way} the estimate: {facts}.")
         elif key == "spread":
@@ -173,6 +189,8 @@ def reasons_for(stats, spread: float | None, cal: dict, x: list[float] | None = 
                 out.append("There were too few sentences to judge how even their lengths were.")
             elif small:
                 out.append(f"Sentence length hardly moved the estimate: {_describe('spread', spread, ref)}.")
+            elif _looks_like_ai("spread", spread, ref) != (c > 0):
+                out.append(f"Sentence length {way} the estimate: {_describe('spread', spread, ref)}.")
             else:
                 lead = _LOOKS["spread"][0] if _looks_like_ai("spread", spread, ref) else _LOOKS["spread"][1]
                 out.append(f"{lead}, which {way} the estimate: {_describe('spread', spread, ref)}.")
@@ -195,13 +213,19 @@ def sentence_effects(text: str, stats, cal: dict | None = None, limit: int = 2) 
         sign = 1.0 if cal["coef"][cal["features"].index("bino")] > 0 else -1.0
     overall = stats.binoculars
     rows, seen = [], set()
+    scored_to = max(e for _, e in stats.offsets) if stats.offsets else 0
     for a, b in sentences(text):
+        if a >= scored_to:
+            break  # past the part of a long text that was scored
         key = " ".join(text[a:b].split())
         if key in seen:
             continue
         seen.add(key)
         ll, xe, n = 0.0, 0.0, 0
         for (s, e), lv, xv in zip(stats.offsets, stats.token_ll, stats.token_xent):
+            # Word pieces often carry the space before them (" word"); place them by their first visible character.
+            while s < e and text[s].isspace():
+                s += 1
             if s >= a and e <= b and e > s:
                 ll += -lv
                 xe += xv
@@ -229,8 +253,13 @@ def _clip(s: str, n: int = 120) -> str:
     return s if len(s) <= n else s[: n - 3].rstrip() + "..."
 
 
+def _num(x: float | None) -> float | None:
+    """Rounded, or None when there is no usable number (JSON has no NaN)."""
+    return round(x, 4) if x is not None and math.isfinite(x) else None
+
+
 def error_rates(cal: dict) -> dict:
-    return cal["heldout"]["how_often_wrong"]
+    return cal.get("heldout", {}).get("how_often_wrong", {})
 
 
 def check_text(text: str, scorer=None, cal: dict | None = None) -> TextResult:
@@ -256,14 +285,15 @@ def check_text(text: str, scorer=None, cal: dict | None = None) -> TextResult:
     res.headline = headline(p, res.band, cal)
     res.reasons = reasons_for(stats, spread, cal, x)
     res.sentences = sentence_effects(text, stats, cal)
-    res.measures = {"tokens": stats.n_tokens, "binoculars": round(stats.binoculars, 4),
-                    "top10_share": round(stats.top10, 4),
-                    "sentence_length_spread": None if spread is None else round(spread, 4),
-                    "fast_detectgpt": round(stats.fdg, 4)}
+    res.measures = {"tokens": stats.n_tokens, "binoculars": _num(stats.binoculars),
+                    "top10_share": _num(stats.top10), "sentence_length_spread": _num(spread),
+                    "fast_detectgpt": _num(stats.fdg)}
     if n < cal.get("full_confidence_words", 0):
         res.notes.append(f"This text is short ({n} words). Our held-out checks were less accurate "
                          f"below {cal['full_confidence_words']} words.")
     if stats.truncated:
-        res.notes.append("Only the first part of the text (about 512 word pieces) was scored.")
-    res.notes.append(cal["data_note"])
+        res.notes.append(f"Only the first part of the text (about {MAX_TOKENS} word pieces, roughly "
+                         f"{MAX_TOKENS * 3 // 4} words) was scored.")
+    if cal.get("data_note"):
+        res.notes.append(cal["data_note"])
     return res

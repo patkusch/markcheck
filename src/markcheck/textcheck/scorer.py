@@ -84,13 +84,18 @@ class PairScorer:
         enc = self.tok(text, return_tensors="pt", return_offsets_mapping=True,
                        truncation=True, max_length=MAX_TOKENS + 1)
         ids = enc["input_ids"]
+        offsets = [tuple(o) for o in enc["offset_mapping"][0].tolist()]
+        kept = int(ids.shape[1])
         bos = self.tok.bos_token_id
-        if bos is not None:
-            ids = torch.cat([torch.tensor([[bos]]), ids], dim=1)
-            offsets = [(0, 0)] + [tuple(o) for o in enc["offset_mapping"][0].tolist()]
-        else:
-            offsets = [tuple(o) for o in enc["offset_mapping"][0].tolist()]
-        full = len(self.tok(text)["input_ids"])
+        # Prepend a start token so the first word is scored too, unless the tokenizer added one
+        # itself. Tokenizers without one (Qwen, for example) leave the first word unscored.
+        if bos is not None and (kept == 0 or int(ids[0, 0]) != bos):
+            ids = torch.cat([torch.tensor([[bos]], dtype=ids.dtype), ids], dim=1)
+            offsets = [(0, 0)] + offsets
+        if ids.shape[1] < 2:
+            raise ValueError("The text has too few word pieces to score.")
+        # Truncated only if the tokenizer dropped pieces, whether or not a start token was added.
+        truncated = len(self.tok(text)["input_ids"]) > kept
         with torch.no_grad():
             lo = self.obs(ids).logits[0, :-1].float()
             lp = self.perf(ids).logits[0, :-1].float()
@@ -119,7 +124,7 @@ class PairScorer:
             token_ll=[float(v) for v in ll_p],
             token_xent=[float(v) for v in xent_tok],
             offsets=offsets[1:],
-            truncated=full > MAX_TOKENS + (0 if bos is None else 0),
+            truncated=truncated,
         )
 
 

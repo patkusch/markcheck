@@ -61,3 +61,11 @@ def test_ship_rule_fails_on_one_worse_kind_or_high_overall():
     old = _res(0.008, {"news": 0.02, "qa": 0.01})
     assert mt.compare(old, _res(0.005, {"news": 0.03, "qa": 0.0}))["worse"] == ["kind: news"]
     assert not mt.compare(old, _res(0.02, {"news": 0.0, "qa": 0.0}))["ship"]
+
+
+def test_ship_rule_overall_limit_is_on_the_fitting_sources():
+    old = _res(0.04, {"news": 0.1})
+    new = _res(0.05, {"news": 0.1})
+    new["overall_fit_sources"] = {"people_above_band": 0.008, "ai_above_band": 0.9}
+    out = mt.compare(old, new)
+    assert out["ship"] and out["overall_key"] == "overall_fit_sources"

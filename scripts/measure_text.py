@@ -490,6 +490,8 @@ def report(exp, fit, full=True):
         res["leave_one_kind_out"] = exp.leave_one_kind_out()
     tc = exp.test_clean()
     res["overall"] = score(fit, tc)
+    # The same, only for the sources the ship rule's 1-in-100 limit is about: HC3, MAGE and RAID.
+    res["overall_fit_sources"] = score(fit, [r for r in tc if r["source"] in TRAINABLE])
     res["seconds"] = round(time.time() - t0, 1)
     return res
 
@@ -528,17 +530,19 @@ def compare(old, new):
         rows.append({"group": k, "n": n[1] or o[1], "old": o[0], "new": n[0]})
         if o[0] is not None and n[0] is not None and n[0] > o[0]:
             worse.append(k)
-    overall_new = new["overall"].get("people_above_band", 1.0)
+    key = "overall_fit_sources" if "overall_fit_sources" in new else "overall"
+    overall_new = new[key].get("people_above_band", 1.0)
     ok = overall_new <= MAX_PEOPLE_FLAGGED and not worse
     print("-- compare (people's texts above the band: old -> new)")
-    print(f"   overall {old['overall'].get('people_above_band', float('nan')):.4f} -> {overall_new:.4f}"
-          f"   AI caught {old['overall'].get('ai_above_band', float('nan')):.3f} -> "
-          f"{new['overall'].get('ai_above_band', float('nan')):.3f}")
+    print(f"   overall ({key}) {old.get(key, old['overall']).get('people_above_band', float('nan')):.4f} -> "
+          f"{overall_new:.4f}   AI caught {old.get(key, old['overall']).get('ai_above_band', float('nan')):.3f} -> "
+          f"{new[key].get('ai_above_band', float('nan')):.3f}")
     for r in rows:
         print(f"   {r['group'][:40]:40s} n={r['n']:5d}  {r['old'] if r['old'] is None else round(r['old'], 4)}"
               f" -> {r['new'] if r['new'] is None else round(r['new'], 4)}" + ("   WORSE" if r["group"] in worse else ""))
     print("   ship rule:", "PASS" if ok else f"FAIL (overall {overall_new:.4f}; worse: {', '.join(worse) or 'none'})")
-    return {"ship": ok, "worse": worse, "overall_old": old["overall"], "overall_new": new["overall"],
+    return {"ship": ok, "worse": worse, "overall_key": key,
+            "overall_old": old.get(key, old["overall"]), "overall_new": new[key],
             "rows": rows, "old_sets": old["sets"], "old_by_model": old["by_model"],
             "old_reworded": old["reworded"]}
 

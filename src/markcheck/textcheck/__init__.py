@@ -200,6 +200,10 @@ def reasons_for(stats, spread: float | None, cal: dict, x: list[float] | None = 
     return out
 
 
+# A sentence is only listed if its own score differs from the whole text's by at least this much.
+MIN_PUSH = 0.05
+
+
 def sentence_effects(text: str, stats, cal: dict | None = None, limit: int = 2) -> list[dict]:
     """The sentences that pushed the estimate most, each way, from the per-word numbers.
 
@@ -236,8 +240,8 @@ def sentence_effects(text: str, stats, cal: dict | None = None, limit: int = 2) 
         rows.append({"text": text[a:b], "score": local, "push": sign * (local - overall)})
     if len(rows) < 2:
         return []
-    up = sorted([r for r in rows if r["push"] > 0], key=lambda r: -r["push"])[:limit]
-    down = sorted([r for r in rows if r["push"] < 0], key=lambda r: r["push"])[:limit]
+    up = sorted([r for r in rows if r["push"] >= MIN_PUSH], key=lambda r: -r["push"])[:limit]
+    down = sorted([r for r in rows if r["push"] <= -MIN_PUSH], key=lambda r: r["push"])[:limit]
     out = []
     for r in up:
         out.append({"text": _clip(r["text"]), "effect": "raised the estimate",
@@ -294,6 +298,8 @@ def check_text(text: str, scorer=None, cal: dict | None = None) -> TextResult:
     if stats.truncated:
         res.notes.append(f"Only the first part of the text (about {MAX_TOKENS} word pieces, roughly "
                          f"{MAX_TOKENS * 3 // 4} words) was scored.")
+    if cal.get("unseen_note"):
+        res.notes.append(cal["unseen_note"])
     if cal.get("data_note"):
         res.notes.append(cal["data_note"])
     return res

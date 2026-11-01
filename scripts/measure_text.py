@@ -199,7 +199,7 @@ def main():
           f"train on {a.train_on}; held-out domain {a.hold_domain}")
     print("coef", dict(zip(feats, np.round(coef, 3))), "intercept", round(float(b), 3))
     results = {}
-    for split in ["train", "heldout", "mage", "mage_para", "toefl"]:
+    for split in ["train", "heldout", "mage", "mage_para", "toefl", "us_students", "college", "cs224n"]:
         rs = [r for r in rows if r["split"] == split and r["n_words"] >= a.min_words]
         if not rs:
             continue
@@ -219,11 +219,12 @@ def main():
             p, y = predict(rs), np.array([r["label"] for r in rs])
             by_len[f"{lo_w}-{hi_w if hi_w < 10**6 else ''}"] = summary(p, y, band)
             print(f"   {lo_w:4d}-{hi_w:<7d}", fmt(by_len[f"{lo_w}-{hi_w if hi_w < 10**6 else ''}"]))
-    tf = [r for r in rows if r["split"] == "toefl"]
-    if tf:
-        pt = predict(tf)
-        print(f"toefl all lengths: n={len(tf)} above band={np.mean(pt >= band[1]):.3f} "
-              f"in band={np.mean((pt > band[0]) & (pt < band[1])):.3f} median p={np.median(pt):.3f}")
+    for split in ("toefl", "us_students", "college", "cs224n"):
+        tf = [r for r in rows if r["split"] == split]
+        if tf:
+            pt = predict(tf)
+            print(f"{split} all lengths: n={len(tf)} above band={np.mean(pt >= band[1]):.3f} "
+                  f"in band={np.mean((pt > band[0]) & (pt < band[1])):.3f} median p={np.median(pt):.3f}")
     if a.write:
         write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict, tr)
 
@@ -281,6 +282,10 @@ def write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict,
                 "AI texts put below the band (news, reviews, summaries, abstracts; GPT-4)": in_100(m["ai_below_band"]),
                 "AI texts reworded by another AI, caught above the band": in_100(mp.get("ai_above_band", 0)),
                 "essays by non-native English students put above the band": in_100(tf.get("people_above_band", 0)),
+                "essays by non-native English students put inside the band": in_100(tf.get("people_in_band", 0)),
+                "essays by US school and college students put inside or above the band": in_100(
+                    np.mean([results[k]["people_above_band"] + results[k]["people_in_band"]
+                             for k in ("us_students", "college") if k in results]) if "college" in results else 0),
                 **({f"people's {KIND_NAMES[worst]} put above the band when that kind of writing was left "
                     f"out of fitting (the worst case we tried)": in_100(unseen[worst]["people_above_band"])}
                    if worst else {}),
@@ -289,6 +294,10 @@ def write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict,
             "metrics": results,
             "by_length": by_len,
         },
+        **({"unseen_note": (f"When one kind of writing ({KIND_NAMES[worst]}) was left out of fitting, "
+                             f"{in_100(unseen[worst]['people_above_band'])} people's texts of that kind were put "
+                             f"above the band. Expect more mistakes on writing unlike our examples.")}
+           if worst else {}),
         "data_note": ("The chance is fitted on public examples by people and by AI: answers from HC3 "
                       "(ChatGPT, 2023) and news, reviews, dialogue summaries and medical abstracts from MAGE "
                       "(GPT-4), half AI and half people. It holds only for similar text with a similar mix; "

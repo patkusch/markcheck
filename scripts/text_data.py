@@ -12,6 +12,7 @@ Splits:
   mage     MAGE out-of-domain GPT-4 test file (held-out, other topics, newer model)
   mage_para  the same after rewording (held-out)
   toefl    91 essays by non-native English students (held-out, all by people)
+  us_students, college, cs224n  essays and abstracts by US students from the same study (held-out)
 """
 from __future__ import annotations
 
@@ -63,6 +64,13 @@ def main() -> None:
                              "label": 0 if r["label"] == "1" else 1, "text": t})
     for d in json.load(open(DATA / "toefl.json", encoding="utf-8")):
         rows.append({"split": "toefl", "domain": "toefl", "label": 0, "text": normalise(d["document"])})
+    # More writing by people from the same study, for a fairness comparison (no licence file;
+    # used only for measuring): US eighth-grade essays, US college essays, Stanford course abstracts.
+    for fname, split in (("hewlett.json", "us_students"), ("CollegeEssay_real_70.json", "college"),
+                         ("CS224N_real_145.json", "cs224n")):
+        if (DATA / fname).exists():
+            for d in json.load(open(DATA / fname, encoding="utf-8")):
+                rows.append({"split": split, "domain": split, "label": 0, "text": normalise(d["document"])})
     for i, r in enumerate(rows):
         r["id"] = i
     with open(DATA / "splits.jsonl", "w", encoding="utf-8") as fh:

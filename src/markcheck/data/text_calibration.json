@@ -12,32 +12,32 @@
     "log_tokens"
   ],
   "mean": [
-    0.8323204674611673,
-    0.8368713935881004,
-    0.4076038078248122,
-    -0.5387840003884239,
-    2.174668267240016,
-    5.530814070365094
+    0.832722040044771,
+    0.8365391249927976,
+    0.4080518953536142,
+    -0.5436707079697379,
+    2.177259780996437,
+    5.531278139510736
   ],
   "std": [
-    0.15791546313545185,
-    0.09587236458615678,
-    0.1738709982705686,
-    1.4673957068511456,
-    0.779409885551781,
-    0.4053923631629914
+    0.1580696200865024,
+    0.09611430683488119,
+    0.1740450748071408,
+    1.472005317727395,
+    0.781176740710237,
+    0.405534531614523
   ],
   "coef": [
-    -6.09066688169474,
-    -0.7022998494172251,
-    -1.0402578610774935,
-    -0.5693639708544053,
-    -1.2527162104688279,
-    0.4862589925146501
+    -6.098380520975347,
+    -0.7012381771689522,
+    -1.0416978790001163,
+    -0.5708185555525821,
+    -1.2539136950653373,
+    0.48660158302113266
   ],
-  "intercept": 1.9750101170624554,
+  "intercept": 1.9574499844144397,
   "fill": {
-    "spread": 0.37474712286302214
+    "spread": 0.375199516547964
   },
   "uncertain_band": [
     0.07,
@@ -48,15 +48,15 @@
   "reference": {
     "top10": {
       "ai": 0.9244943559169769,
-      "person": 0.7579046785831451
+      "person": 0.7573333382606506
     },
     "bino": {
       "ai": 0.7039033410876807,
-      "person": 0.9829110777775084
+      "person": 0.9829580584661193
     },
     "spread": {
       "ai": 0.3222188622453329,
-      "person": 0.4574270555836659
+      "person": 0.4581228472908512
     }
   },
   "heldout": {
@@ -69,15 +69,17 @@
       "AI texts put below the band (news, reviews, summaries, abstracts; GPT-4)": "2 in 100",
       "AI texts reworded by another AI, caught above the band": "2 in 100",
       "essays by non-native English students put above the band": "3 in 100",
-      "people's news put above the band when that kind of writing was left out of fitting (the worst case we tried)": "15 in 100"
+      "essays by non-native English students put inside the band": "57 in 100",
+      "essays by US school and college students put inside or above the band": "5 in 100",
+      "people's news put above the band when that kind of writing was left out of fitting (the worst case we tried)": "14 in 100"
     },
     "unseen_kinds": {
       "cnn": {
-        "auroc": 0.741,
+        "auroc": 0.742,
         "tpr_at_1pct_fpr": 0.047,
         "ece": 0.2,
-        "people_above_band": 0.151,
-        "people_in_band": 0.269,
+        "people_above_band": 0.14,
+        "people_in_band": 0.28,
         "ai_above_band": 0.617,
         "ai_below_band": 0.28
       },
@@ -93,9 +95,9 @@
       "imdb": {
         "auroc": 0.999,
         "tpr_at_1pct_fpr": 0.961,
-        "ece": 0.084,
+        "ece": 0.085,
         "people_above_band": 0.0,
-        "people_in_band": 0.037,
+        "people_in_band": 0.038,
         "ai_above_band": 0.796,
         "ai_below_band": 0.0
       },
@@ -111,12 +113,12 @@
     },
     "metrics": {
       "train": {
-        "n": 1614,
-        "auroc": 0.988921310944468,
+        "n": 1617,
+        "auroc": 0.9889631432868683,
         "tpr_at_1pct_fpr": 0.8869179600886918,
-        "ece": 0.012315493179390161,
-        "people_above_band": 0.009831460674157303,
-        "people_in_band": 0.25280898876404495,
+        "ece": 0.012273842890599476,
+        "people_above_band": 0.009790209790209791,
+        "people_in_band": 0.2517482517482518,
         "ai_below_band": 0.011086474501108648,
         "ai_above_band": 0.885809312638581,
         "ai_in_band": 0.10310421286031042
@@ -125,7 +127,7 @@
         "n": 914,
         "auroc": 0.998046398046398,
         "tpr_at_1pct_fpr": 0.9965811965811966,
-        "ece": 0.01779280713122385,
+        "ece": 0.017771910126983342,
         "people_above_band": 0.00303951367781155,
         "people_in_band": 0.1519756838905775,
         "ai_below_band": 0.0017094017094017094,
@@ -133,34 +135,58 @@
         "ai_in_band": 0.010256410256410256
       },
       "mage": {
-        "n": 720,
-        "auroc": 0.9687692925052476,
+        "n": 717,
+        "auroc": 0.9685272234847305,
         "tpr_at_1pct_fpr": 0.7994505494505495,
-        "ece": 0.03885726172364608,
-        "people_above_band": 0.0056179775280898875,
-        "people_in_band": 0.3202247191011236,
+        "ece": 0.039090864805894465,
+        "people_above_band": 0.0056657223796034,
+        "people_in_band": 0.32294617563739375,
         "ai_below_band": 0.024725274725274724,
         "ai_above_band": 0.7445054945054945,
         "ai_in_band": 0.23076923076923078
       },
       "mage_para": {
-        "n": 1855,
-        "auroc": 0.67131645816312,
+        "n": 1852,
+        "auroc": 0.6692318013708856,
         "tpr_at_1pct_fpr": 0.04136090727151434,
-        "ece": 0.6350899337918904,
-        "people_above_band": 0.0056179775280898875,
-        "people_in_band": 0.3202247191011236,
-        "ai_below_band": 0.4563042028018679,
+        "ece": 0.6362862975256175,
+        "people_above_band": 0.0056657223796034,
+        "people_in_band": 0.32294617563739375,
+        "ai_below_band": 0.45697131420947296,
         "ai_above_band": 0.02134756504336224,
-        "ai_in_band": 0.5223482321547699
+        "ai_in_band": 0.5216811207471648
       },
       "toefl": {
         "n": 63,
         "auroc": NaN,
         "tpr_at_1pct_fpr": NaN,
-        "ece": 0.20062251957350483,
+        "ece": 0.2004892136381394,
         "people_above_band": 0.031746031746031744,
         "people_in_band": 0.5714285714285714
+      },
+      "us_students": {
+        "n": 88,
+        "auroc": NaN,
+        "tpr_at_1pct_fpr": NaN,
+        "ece": 0.013612259989670125,
+        "people_above_band": 0.0,
+        "people_in_band": 0.045454545454545456
+      },
+      "college": {
+        "n": 70,
+        "auroc": NaN,
+        "tpr_at_1pct_fpr": NaN,
+        "ece": 0.027178506662537766,
+        "people_above_band": 0.0,
+        "people_in_band": 0.05714285714285714
+      },
+      "cs224n": {
+        "n": 132,
+        "auroc": NaN,
+        "tpr_at_1pct_fpr": NaN,
+        "ece": 0.01596189893112699,
+        "people_above_band": 0.0,
+        "people_in_band": 0.06060606060606061
       }
     },
     "by_length": {
@@ -168,7 +194,7 @@
         "n": 143,
         "auroc": 0.9124444444444444,
         "tpr_at_1pct_fpr": 0.2777777777777778,
-        "ece": 0.07327916115771538,
+        "ece": 0.07328200960271625,
         "people_above_band": 0.032,
         "people_in_band": 0.08,
         "ai_below_band": 0.16666666666666666,
@@ -179,7 +205,7 @@
         "n": 208,
         "auroc": 0.9886843899113837,
         "tpr_at_1pct_fpr": 0.6,
-        "ece": 0.044944400751665094,
+        "ece": 0.044897878226697954,
         "people_above_band": 0.024539877300613498,
         "people_in_band": 0.10429447852760736,
         "ai_below_band": 0.0,
@@ -187,12 +213,12 @@
         "ai_in_band": 0.17777777777777778
       },
       "100-149": {
-        "n": 455,
-        "auroc": 0.9828571428571429,
+        "n": 454,
+        "auroc": 0.9828161802355351,
         "tpr_at_1pct_fpr": 0.9142857142857143,
-        "ece": 0.021670045279396397,
-        "people_above_band": 0.007142857142857143,
-        "people_in_band": 0.16071428571428573,
+        "ece": 0.021729293282576948,
+        "people_above_band": 0.007168458781362007,
+        "people_in_band": 0.16129032258064516,
         "ai_below_band": 0.022857142857142857,
         "ai_above_band": 0.8971428571428571,
         "ai_in_band": 0.08
@@ -201,7 +227,7 @@
         "n": 705,
         "auroc": 0.9961089908961047,
         "tpr_at_1pct_fpr": 0.9753320683111955,
-        "ece": 0.022455473957785424,
+        "ece": 0.022463983050339136,
         "people_above_band": 0.0,
         "people_in_band": 0.16853932584269662,
         "ai_below_band": 0.0056925996204933585,
@@ -209,17 +235,18 @@
         "ai_in_band": 0.06261859582542695
       },
       "250-": {
-        "n": 474,
-        "auroc": 0.9793290410030498,
+        "n": 472,
+        "auroc": 0.9791452991452991,
         "tpr_at_1pct_fpr": 0.8623481781376519,
-        "ece": 0.03112292980744048,
-        "people_above_band": 0.004405286343612335,
-        "people_in_band": 0.3920704845814978,
+        "ece": 0.03128729432029499,
+        "people_above_band": 0.0044444444444444444,
+        "people_in_band": 0.39555555555555555,
         "ai_below_band": 0.012145748987854251,
         "ai_above_band": 0.8137651821862348,
         "ai_in_band": 0.17408906882591094
       }
     }
   },
+  "unseen_note": "When one kind of writing (news) was left out of fitting, 14 in 100 people's texts of that kind were put above the band. Expect more mistakes on writing unlike our examples.",
   "data_note": "The chance is fitted on public examples by people and by AI: answers from HC3 (ChatGPT, 2023) and news, reviews, dialogue summaries and medical abstracts from MAGE (GPT-4), half AI and half people. It holds only for similar text with a similar mix; where AI text is rarer, the chance is lower than shown."
 }

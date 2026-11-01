@@ -162,9 +162,10 @@ def main():
             by_len[f"{lo_w}-{hi_w if hi_w < 10**6 else ''}"] = summary(p, y, band)
             print(f"   {lo_w:4d}-{hi_w:<7d}", fmt(by_len[f"{lo_w}-{hi_w if hi_w < 10**6 else ''}"]))
     tf = [r for r in rows if r["split"] == "toefl"]
-    pt = predict(tf)
-    print(f"toefl all lengths: n={len(tf)} above band={np.mean(pt >= band[1]):.3f} "
-          f"in band={np.mean((pt > band[0]) & (pt < band[1])):.3f} median p={np.median(pt):.3f}")
+    if tf:
+        pt = predict(tf)
+        print(f"toefl all lengths: n={len(tf)} above band={np.mean(pt >= band[1]):.3f} "
+              f"in band={np.mean((pt > band[0]) & (pt < band[1])):.3f} median p={np.median(pt):.3f}")
     if a.write:
         write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict, tr)
 
@@ -205,7 +206,7 @@ def write(a, feats, fill, mu, sd, coef, b, band, rows, results, by_len, predict,
         },
         "data_note": ("The chance is fitted on public example answers by people and by ChatGPT (HC3, 2023), "
                       "half AI and half people. It holds only for similar text with a similar mix; "
-                      "where AI text is rarer, the real chance is lower."),
+                      "where AI text is rarer, the chance is lower than shown."),
     }
     out = ROOT / "src" / "markcheck" / "data" / "text_calibration.json"
     out.write_text(json.dumps(cal, indent=2) + "\n", encoding="utf-8")

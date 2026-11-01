@@ -36,6 +36,11 @@ exit codes:
   1  a label was found in at least one file
   2  error: nothing could be checked, or something failed and no label was found
 
+text estimate:
+  markcheck text "some text"   estimate the chance a text was AI-written
+  markcheck text --help        more about it (it needs: pip install 'markcheck[text]')
+  To check a file or folder named "text", write ./text instead.
+
 markcheck runs on your computer and never goes online.
 Hidden files and folders, and tool folders such as .git and .venv, are skipped.
 Files that are not pictures, video, sound or PDF are read only up to 16 MB.
@@ -129,6 +134,10 @@ def to_json(reports: list[FileReport], problems: list[dict], code: int) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv and argv[0] == "text":
+        from .textcheck.cli import main as text_main
+        return text_main(argv[1:])
     ap = argparse.ArgumentParser(
         prog="markcheck",
         description="Look for AI labels in a file or folder and explain what they do and don't prove. "

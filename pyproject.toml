@@ -18,7 +18,8 @@ dependencies = [
 [project.optional-dependencies]
 sd = ["invisible-watermark>=0.2.0"]
 trustmark = ["trustmark>=0.9"]
-all = ["invisible-watermark>=0.2.0", "trustmark>=0.9"]
+text = ["torch>=2.2", "transformers>=4.45", "huggingface_hub>=0.24"]
+all = ["invisible-watermark>=0.2.0", "trustmark>=0.9", "torch>=2.2", "transformers>=4.45", "huggingface_hub>=0.24"]
 dev = ["pytest>=8"]
 
 [project.scripts]
@@ -32,3 +33,7 @@ markcheck = ["data/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = [
+  "slow: loads the real language models for the text check (run with: pytest -m slow)",
+]

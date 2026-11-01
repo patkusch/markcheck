@@ -1,0 +1,172 @@
+{
+  "models": [
+    "HuggingFaceTB/SmolLM2-360M",
+    "HuggingFaceTB/SmolLM2-360M-Instruct"
+  ],
+  "features": [
+    "bino",
+    "top10",
+    "spread"
+  ],
+  "mean": [
+    0.7813530103756479,
+    0.8724700457600275,
+    0.40669246558036715
+  ],
+  "std": [
+    0.17322152226159382,
+    0.09606150710221514,
+    0.17979000137422804
+  ],
+  "coef": [
+    -6.9072383509863275,
+    4.581344833498495,
+    0.14290170165458657
+  ],
+  "intercept": 2.9469688869389548,
+  "fill": {
+    "spread": 0.3736923024857043
+  },
+  "uncertain_band": [
+    0.35,
+    0.65
+  ],
+  "min_words": 100,
+  "full_confidence_words": 150,
+  "reference": {
+    "top10": {
+      "ai": 0.9411764740943909,
+      "person": 0.7578475475311279
+    },
+    "bino": {
+      "ai": 0.6567944025788945,
+      "person": 0.9920089560635522
+    },
+    "spread": {
+      "ai": 0.32170496130657217,
+      "person": 0.48747376140244003
+    }
+  },
+  "heldout": {
+    "how_often_wrong": {
+      "people's texts put above the band (similar topics)": "1 in 100",
+      "AI texts put below the band (similar topics)": "1 in 100",
+      "people's texts put above the band (other topics, newer AI)": "1 in 100",
+      "AI texts put below the band (other topics, newer AI)": "45 in 100",
+      "AI texts reworded by another AI, caught above the band": "fewer than 1 in 100",
+      "essays by non-native English students put above the band": "5 in 100"
+    },
+    "metrics": {
+      "train": {
+        "n": 907,
+        "auroc": 0.9998430486235365,
+        "tpr_at_1pct_fpr": 0.9947735191637631,
+        "ece": 0.004037700074063099,
+        "people_above_band": 0.006006006006006006,
+        "people_in_band": 0.006006006006006006,
+        "ai_below_band": 0.003484320557491289,
+        "ai_above_band": 0.9930313588850174,
+        "ai_in_band": 0.003484320557491289
+      },
+      "heldout": {
+        "n": 914,
+        "auroc": 0.9981035512950407,
+        "tpr_at_1pct_fpr": 0.9863247863247864,
+        "ece": 0.006267771031509185,
+        "people_above_band": 0.00911854103343465,
+        "people_in_band": 0.00303951367781155,
+        "ai_below_band": 0.005128205128205128,
+        "ai_above_band": 0.9863247863247864,
+        "ai_in_band": 0.008547008547008548
+      },
+      "mage": {
+        "n": 1428,
+        "auroc": 0.9382755560442322,
+        "tpr_at_1pct_fpr": 0.5014450867052023,
+        "ece": 0.2277337653529412,
+        "people_above_band": 0.006793478260869565,
+        "people_in_band": 0.006793478260869565,
+        "ai_below_band": 0.44508670520231214,
+        "ai_above_band": 0.4595375722543353,
+        "ai_in_band": 0.0953757225433526
+      },
+      "mage_para": {
+        "n": 2235,
+        "auroc": 0.5575863981784958,
+        "tpr_at_1pct_fpr": 0.004002668445630421,
+        "ece": 0.6616904150295778,
+        "people_above_band": 0.006793478260869565,
+        "people_in_band": 0.006793478260869565,
+        "ai_below_band": 0.9913275517011341,
+        "ai_above_band": 0.00333555703802535,
+        "ai_in_band": 0.00533689126084056
+      },
+      "toefl": {
+        "n": 63,
+        "auroc": NaN,
+        "tpr_at_1pct_fpr": NaN,
+        "ece": 0.05593819387091181,
+        "people_above_band": 0.047619047619047616,
+        "people_in_band": 0.015873015873015872
+      }
+    },
+    "by_length": {
+      "30-59": {
+        "n": 158,
+        "auroc": 0.9229166666666667,
+        "tpr_at_1pct_fpr": 0.3,
+        "ece": 0.11891924360247613,
+        "people_above_band": 0.03125,
+        "people_in_band": 0.0,
+        "ai_below_band": 0.5,
+        "ai_above_band": 0.4,
+        "ai_in_band": 0.1
+      },
+      "60-99": {
+        "n": 244,
+        "auroc": 0.9643879173290938,
+        "tpr_at_1pct_fpr": 0.5,
+        "ece": 0.11353055709262097,
+        "people_above_band": 0.011764705882352941,
+        "people_in_band": 0.0058823529411764705,
+        "ai_below_band": 0.35135135135135137,
+        "ai_above_band": 0.6081081081081081,
+        "ai_in_band": 0.04054054054054054
+      },
+      "100-149": {
+        "n": 654,
+        "auroc": 0.9730854605993341,
+        "tpr_at_1pct_fpr": 0.8160377358490566,
+        "ece": 0.04662002180283912,
+        "people_above_band": 0.011312217194570135,
+        "people_in_band": 0.00904977375565611,
+        "ai_below_band": 0.14150943396226415,
+        "ai_above_band": 0.8160377358490566,
+        "ai_in_band": 0.04245283018867924
+      },
+      "150-249": {
+        "n": 900,
+        "auroc": 0.9821367332941408,
+        "tpr_at_1pct_fpr": 0.8996913580246914,
+        "ece": 0.10986033814289153,
+        "people_above_band": 0.003968253968253968,
+        "people_in_band": 0.0,
+        "ai_below_band": 0.13580246913580246,
+        "ai_above_band": 0.8271604938271605,
+        "ai_in_band": 0.037037037037037035
+      },
+      "250-": {
+        "n": 788,
+        "auroc": 0.9394856082788755,
+        "tpr_at_1pct_fpr": 0.47721822541966424,
+        "ece": 0.2572206235498731,
+        "people_above_band": 0.005390835579514825,
+        "people_in_band": 0.005390835579514825,
+        "ai_below_band": 0.4628297362110312,
+        "ai_above_band": 0.4460431654676259,
+        "ai_in_band": 0.09112709832134293
+      }
+    }
+  },
+  "data_note": "The chance is fitted on public example answers by people and by ChatGPT (HC3, 2023), half AI and half people. It holds only for similar text with a similar mix; where AI text is rarer, the chance is lower than shown."
+}

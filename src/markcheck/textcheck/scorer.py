@@ -56,6 +56,13 @@ class PairScorer:
             ) from exc
         if local_only:
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+        try:
+            from transformers.utils import logging as hf_logging
+            hf_logging.set_verbosity_error()
+            hf_logging.disable_progress_bar()
+        except Exception:  # pragma: no cover - older transformers
+            pass
         if threads:
             torch.set_num_threads(threads)
         self.torch = torch

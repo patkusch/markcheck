@@ -91,7 +91,7 @@ source .venv/bin/activate
 pip install -e '.[all]'
 ```
 
-`[all]` adds the two hidden-mark checks.
+`[all]` adds the two hidden-mark checks and the text check.
 They need the PyTorch library, which is a large download.
 Without `[all]`, markcheck still checks signed labels and metadata tags.
 
@@ -119,10 +119,78 @@ The answer it gives back to scripts (the exit code):
 
 Hidden files, and tool folders such as `.git`, are skipped.
 
+## Text check: an estimate, not a finding
+
+`markcheck text` looks at a piece of writing and estimates the chance that it was AI-written.
+It is a separate check from the label checks above.
+It does not look for a label.
+It asks two small open language models how predictable the words are.
+A language model is a program that guesses the next word; AI text tends to use the words such a program expects.
+
+```
+markcheck text "paste the text here"
+markcheck text --file essay.txt
+cat essay.txt | markcheck text -
+markcheck text --file essay.txt --json
+```
+
+It gives:
+
+- an estimated chance, such as "Estimated chance this was AI-written: 72% (uncertain band 7%-84% means we can't tell)";
+- the reasons, worked out from this text's own numbers, such as how predictable the words were and how even the sentence lengths were;
+- the sentences that moved the estimate most;
+- how often the check was right and wrong on texts it had never seen;
+- always, one line: this is an estimate, it is wrong sometimes, it can be unfair to people writing in a language that is not their first, and it should not be the only basis for any decision about a person.
+
+It needs at least 100 words.
+Below that, our tests showed people's texts were wrongly flagged three to four times as often, so it gives no number and says why.
+
+### How accurate it is
+
+Measured on texts kept aside, never used for fitting (full numbers in `docs/rounds.md`):
+
+| Kind of text | Caught as AI (above the band) | People's texts wrongly put above the band |
+|---|---|---|
+| Answers like the ones it was fitted on (ChatGPT, 2023) | 99 in 100 | fewer than 1 in 100 |
+| News, reviews, summaries and medical abstracts by GPT-4 | 74 in 100 | 1 in 100 |
+| AI text reworded by another AI | 2 in 100 | - |
+| Essays by non-native English students | - | 3 in 100 (and 57 in 100 "can't tell") |
+| Essays by US school and college students | - | 0 in 100 (5 in 100 "can't tell") |
+| News, when no news was used for fitting | - | 14 in 100 |
+
+What this means in plain words:
+
+- **It is good at text like its examples, and much worse at anything else.**
+- **Reworded AI text gets past it almost every time.**
+- **It is unfair to non-native English writers.** Their essays got higher estimates than US students' essays, as other detectors do.
+- **The percentage depends on the mix.** It was fitted on half AI and half people's text. Where AI text is rarer, the chance is lower than shown.
+
+### What it must not be used for
+
+- It must not be the only basis for any decision about a person: a grade, a job, an accusation or a penalty.
+- It cannot show who wrote something.
+- It is not a check for copying, and it does not say whether anyone broke a rule.
+- markcheck gives no tips for changing a text so it scores differently, and never will.
+
+The research behind these choices is in `docs/text-research.md`.
+
+### Install the text check
+
+The text check needs extra libraries and two small open models (SmolLM2-360M and SmolLM2-360M-Instruct, Apache-2.0, about 1.4 GB together):
+
+```
+pip install -e '.[text]'
+python -m markcheck.fetch_models --text
+```
+
+After that it runs on your computer and never goes online.
+On a laptop without a graphics card, one text takes about 3 seconds, most of it loading the models.
+
 ## What markcheck will not do
 
-markcheck only finds and explains labels.
+markcheck only finds and explains labels, and estimates the chance a text was AI-written.
 It does not remove, change or add labels.
+It does not help anyone change a text to get a different estimate.
 
 ## Limits
 

@@ -56,6 +56,9 @@ KIND_MAP = {
     "us_students": "student essays (US)", "college": "student essays (US college)",
     "cs224n": "student abstracts (Stanford)",
 }
+# Plain names for the newer models in the "How often" list.
+SHOW_MODEL = {"gpt-4o": "GPT-4o", "gemini-2.5-flash": "Gemini 2.5 Flash", "deepseek-v3": "DeepSeek-V3",
+              "qwen-max": "Qwen-Max"}
 OLD_SETS = ["train", "heldout", "mage", "mage_para", "toefl", "us_students", "college", "cs224n"]
 
 
@@ -608,6 +611,10 @@ def mean_of(d, key, names=None):
     return float(np.mean(vals)) if vals else float("nan")
 
 
+def srcs_fit(exp):
+    return {r["source"] for r in exp.tr}
+
+
 def write(a, exp, fit, res):
     sets = res["sets"]
     h, m = sets.get("heldout", {}), sets.get("mage", {})
@@ -642,10 +649,20 @@ def write(a, exp, fit, res):
     if raid:
         how["people's texts put above the band (RAID: 8 kinds of writing, 11 AI models)"] = in_100(raid.get("people_above_band"))
         how["AI texts caught above the band (RAID: 8 kinds of writing, 11 AI models)"] = in_100(raid.get("ai_above_band"))
-    if newer:
-        how["AI texts from newer models (2024-2026) caught above the band; never used for fitting"] = in_100(newer.get("ai_above_band"))
-        if newer.get("people_above_band") is not None:
-            how["people's texts put above the band (newer-model set)"] = in_100(newer.get("people_above_band"))
+    seen = sorted({r["model"] for r in exp.tr if r["label"] == 1})
+    unseen = {m: v for m, v in res["by_model"].items()
+              if m not in seen and set(v.get("sources", [])) <= set(NEWER) and v.get("n_ai", 0) >= 30}
+    # Fitting on these models (--train-on ...+newer) makes them seen: then no row claims otherwise.
+    for m in sorted(unseen, key=lambda m: (m not in SHOW_MODEL, m.lower())):
+        if m in SHOW_MODEL:
+            how[f"AI texts by {SHOW_MODEL[m]} (2024-2025), a model never used for fitting, caught above the band"] = \
+                in_100(unseen[m].get("ai_above_band"))
+    beemo = res["by_source"].get("beemo", {})
+    if beemo.get("n_ai") and "beemo" not in srcs_fit(exp):
+        how["AI texts by ten open chat models never used for fitting (Llama 2, Gemma, Mistral, Tulu, Zephyr), "
+            "caught above the band"] = in_100(beemo.get("ai_above_band"))
+    if newer.get("people_above_band") is not None:
+        how["people's texts put above the band (the newer-model sets)"] = in_100(newer.get("people_above_band"))
     if lomo:
         how["AI texts caught above the band from a model left out of fitting (average over models)"] = in_100(mean_of(lomo, "ai_above_band"))
         how[f"AI texts caught above the band from a model left out of fitting (worst: {worst_model})"] = in_100(lomo[worst_model].get("ai_above_band"))
@@ -663,7 +680,7 @@ def write(a, exp, fit, res):
         unseen_bits.append(f"On AI models left out of fitting it caught {in_100(mean_of(lomo, 'ai_above_band'))} AI texts "
                            f"on average ({in_100(lomo[worst_model]['ai_above_band'])} for the hardest, {worst_model}).")
     if newer:
-        unseen_bits.append(f"On newer AI models (2024-2026) it never saw, it caught {in_100(newer.get('ai_above_band'))}.")
+        unseen_bits.append(f"On newer AI models (2024-2025) it never saw, it caught {in_100(newer.get('ai_above_band'))}.")
     if loko and worst_kind:
         unseen_bits.append(f"When one kind of writing was left out of fitting, {in_100(loko[worst_kind]['people_above_band'])} "
                            f"people's texts of the worst kind ({worst_kind}) were put above the band.")
@@ -694,6 +711,7 @@ def write(a, exp, fit, res):
         "reference": {k: ref_values(exp.tr, k) for k in ("top10", "bino", "spread")},
         "fit_recipe": {"train_on": a.train_on, "weights": a.weights, "band": a.band, "l2": a.l2,
                        "reworded_train": a.reworded_train, "n_train": res["n_train"],
+                       "ai_models_fitted_on": seen,
                        "n_train_by_source": res["n_train_by_source"]},
         "heldout": {
             "how_often_wrong": how,

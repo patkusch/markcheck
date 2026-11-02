@@ -270,3 +270,7 @@ We refitted once per AI model and once per kind of writing, each time leaving th
 - On MAGE's reworded set, the check still mostly fails: the chance an AI text scores higher than a person's is 63 in 100, and only 3 in 100 are caught.
 - On RAID's reworded set, it does much better. The chance is 90 in 100, and 63 in 100 are caught.
 - The two sets reword in different ways. MAGE uses a stronger rewording model. So "reworded text slips through" is still the honest summary for strong rewording.
+
+### A second try, giving each AI model equal weight, also failed
+
+We refitted again, giving each AI model the same weight so that the many ChatGPT texts would not dominate. People's texts flagged rose from 0.33 to 0.77 in 100. News, web text, dialogue, search-engine text and one essay set all got worse. So it did not ship either. Full numbers: `docs/results/round7b-refit-weighted-by-model.txt`.

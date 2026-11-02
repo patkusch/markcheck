@@ -8,3 +8,4 @@ Each file here is one measuring run of the text check. Every number comes from t
 These files hold numbers only. They never hold the texts themselves, because the data sets have their own licences. The texts are downloaded once into `~/.cache/markcheck/textdata` (see `docs/text-data.md`).
 
 The fit that ships is in `src/markcheck/data/text_calibration.json`. A result stored here does not mean it shipped. `docs/rounds.md` says which ones did.
+- `round7b-refit-weighted-by-model.*` is the second round 7 try. Each AI model gets equal weight in fitting. It skips the leave-one-out refits.

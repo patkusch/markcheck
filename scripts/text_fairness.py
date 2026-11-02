@@ -34,8 +34,7 @@ import measure_text as mt  # noqa: E402  (same loading and splitting as the fit)
 from markcheck.textcheck import probability  # noqa: E402  (the shipped scoring function)
 
 CAL = ROOT / "src" / "markcheck" / "data" / "text_calibration.json"
-SCRATCH = Path("/private/tmp/claude-501/-Users-patriciakusch-anthropic-academy/"
-               "fd2a9156-a850-4003-80bd-1bd9d2c5eba6/scratchpad")
+OUT_DIR = mt.DATA  # results sit next to the cached data, never in the repo
 
 # Round-3 people's-writing sets, by split name.
 SPLIT_GROUPS = {
@@ -225,7 +224,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tops", default="0.84,0.88,0.90,0.92,0.95")
     ap.add_argument("--perf", default=None, help="performer model (default: the calibration's)")
-    ap.add_argument("--out-json", default=str(SCRATCH / "fair_results.json"))
+    ap.add_argument("--out-json", default=str(OUT_DIR / "fair_results.json"))
     ap.add_argument("--out-md", default=None, help="also write the tables here")
     ap.add_argument("--merge", action="store_true",
                     help="also store the results as 'fairness' in the shipped calibration (no other key changes)")

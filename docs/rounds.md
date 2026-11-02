@@ -253,3 +253,14 @@ These figures come from the round 7 fit. They show how many AI texts land above 
 | GPT-4o | 6 in 100 |
 
 The check was built on small, older models. Text from 2024-2025 models reads much like people's writing to it. On these models the check is little better than a coin toss: the chance an AI text scores higher than a person's is 64-69 in 100.
+
+### Leaving one AI model or one kind of writing out of fitting
+
+We refitted once per AI model and once per kind of writing, each time leaving that one out. Then we measured on the one left out. This shows how the check copes with something it never saw.
+
+- Most left-out AI models were still caught well. Llama-chat, Mistral-chat and MPT-chat were caught 98-100 times in 100.
+- The weakest left-out models were MPT (47 in 100), Mistral (58 in 100) and Cohere (60 in 100).
+- With GPT-4 left out, 2 in 100 people's texts were flagged, and 66 in 100 GPT-4 texts were caught.
+- News is the problem kind of writing. With news left out, 46 in 100 people's news articles were flagged.
+- With dialogue left out, 6 in 100 people's dialogues were flagged.
+- Every other kind of writing, when left out, had no more than 1 in 100 people's texts flagged.

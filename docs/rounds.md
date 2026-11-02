@@ -264,3 +264,9 @@ We refitted once per AI model and once per kind of writing, each time leaving th
 - News is the problem kind of writing. With news left out, 46 in 100 people's news articles were flagged.
 - With dialogue left out, 6 in 100 people's dialogues were flagged.
 - Every other kind of writing, when left out, had no more than 1 in 100 people's texts flagged.
+
+### AI text reworded by another AI
+
+- On MAGE's reworded set, the check still mostly fails: the chance an AI text scores higher than a person's is 63 in 100, and only 3 in 100 are caught.
+- On RAID's reworded set, it does much better. The chance is 90 in 100, and 63 in 100 are caught.
+- The two sets reword in different ways. MAGE uses a stronger rewording model. So "reworded text slips through" is still the honest summary for strong rewording.

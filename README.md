@@ -193,10 +193,15 @@ What this means in plain words:
 
 - **It is good at text like its examples, and much worse at anything else.**
 - **Reworded AI text gets past it almost every time.**
-- **Newer AI models are caught far less often.** It was fitted on text by ChatGPT and GPT-4 from 2023. Text by GPT-4o, Gemini 2.5 Flash and DeepSeek-V3 is mostly missed.
+- **Newer AI models are caught far less often.** It was fitted on text by ChatGPT and GPT-4 from 2023. Text by GPT-4o, Gemini 2.5 Flash and DeepSeek-V3 is mostly missed (numbers by model are in `docs/rounds.md`, round 7).
 - **People's writing unlike its examples is flagged more often.** In the newer-model sets, more people's texts were put above the band than in the sets it was fitted on.
 - **It is unfair to non-native English writers.** Their essays got higher estimates than US students' essays, as other detectors do.
+- **News is the hardest kind of writing.** When news was left out of fitting, nearly half of people's news articles were wrongly flagged.
 - **The percentage depends on the mix.** It was fitted on half AI and half people's text. Where AI text is rarer, the chance is lower than shown.
+
+### Why we have not refitted it yet
+
+We tried fitting it on more kinds of writing and more AI models. It caught more AI text, but it also flagged more people's writing, mostly news. We only ship a new fit if no kind of people's writing gets flagged more often. Two tries failed that test, so the 2023 fit stays. `docs/rounds.md` has the numbers.
 
 ### What it must not be used for
 

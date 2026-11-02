@@ -279,5 +279,5 @@ We refitted again, giving each AI model the same weight so that the many ChatGPT
 
 - The shipped fit is still round 3's. Both round 7 refits are stored but not used.
 - The held-back test about unseen AI models stays out. It needs a shipped fit that names them.
-- People's news is the main reason refits fail. Next, try a fit that leaves news out of the ship rule's worst cases only after adding more people's news to fitting, not by loosening the rule.
+- People's news is the main reason refits fail. Next, add more people's news to fitting and try again. The ship rule stays as it is.
 - Newer models (GPT-4o, Gemini 2.5 Flash, DeepSeek-V3) may need a larger observer and performer pair than SmolLM2-360M. Next, test a 1-2 billion parameter pair on the newer-model set, timing it on a laptop.

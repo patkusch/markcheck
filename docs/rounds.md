@@ -208,3 +208,18 @@ Not done yet:
 - There are no reworded-text results on RAID's reworded set yet.
 - There are no fairness flag rates with confidence ranges yet.
 - The held-back test about unseen AI models is still out. It goes back in after the refit.
+
+## Text round 6 (stopped at bedtime, 2026-11-02)
+
+What landed:
+- A weekly GitHub run of the slow tests with the real models, with the model files cached.
+- Tests for the measuring script. They check known scores, equal weight per source, and that a leave-one-model-out test never fits on the model it tests.
+- Fairness flag rates with 95% ranges for 1,451 essays and abstracts, shown in the README.
+- Notes on how to measure a new fit, apply the ship rule and update the stored numbers.
+- A plain README warning that newer AI models are mostly missed and that unfamiliar writing by people is flagged more.
+
+Not done yet:
+- RAID is fully scored, but the wider refit has not been checked against the ship rule. All numbers shown are still round 3's.
+- There are no leave-one-model-out or leave-one-kind-out results yet.
+- There are no reworded-text results on RAID's reworded set yet.
+- The held-back test about unseen AI models is still out.

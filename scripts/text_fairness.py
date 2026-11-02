@@ -44,6 +44,12 @@ SPLIT_GROUPS = {
     "college": ("US college essays", "native"),
     "cs224n": ("Stanford course abstracts", "native"),
 }
+# Plain names for the round-4 essay sets.
+PLAIN_GROUPS = {
+    ("persuade", "ell"): "US school essays, English learners (PERSUADE)",
+    ("persuade", "non_ell"): "US school essays, not English learners (PERSUADE)",
+    ("ellipse", "ell"): "US school essays, English learners (ELLIPSE)",
+}
 
 
 def wilson(k: int, n: int, z: float = 1.959964) -> tuple[float, float]:
@@ -77,7 +83,7 @@ def group_name(r: dict) -> str | None:
         return SPLIT_GROUPS[r["split"]][0]
     if r.get("group"):
         src = r.get("source") or r["split"]
-        return f"{src}: {r['group']}"
+        return PLAIN_GROUPS.get((src, r["group"]), f"{src}: {r['group']}")
     return None
 
 
@@ -117,7 +123,8 @@ def ai_set_name(r: dict) -> str | None:
     Altered text other than plain rewording (RAID's character and spelling changes) is left
     out on purpose: a table of which changes lower the catch rate would coach people."""
     names = {"mage": "GPT-4 (MAGE)", "mage_para": "reworded by another AI (MAGE)",
-             "raid": "RAID (11 models)", "heldout": "ChatGPT (HC3)"}
+             "raid": "RAID (11 models)", "heldout": "ChatGPT (HC3)",
+             "newmodels": "newer models (DetectRL-X and Beemo)"}
     s = r.get("set") or r["split"]
     if s in names:
         return names[s]

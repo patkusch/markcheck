@@ -163,6 +163,30 @@ Measured on texts kept aside, never used for fitting. The "can't tell" band is 7
 | essays by non-native English students put inside the band | 57 in 100 |
 | essays by US school and college students put inside or above the band | 5 in 100 |
 | people's news put above the band when that kind of writing was left out of fitting (the worst case we tried) | 14 in 100 |
+
+**Fairness.** People's writing only, never used for fitting, 100 words or more. "Likely" is the range the rate is likely to be in (95% confidence); it is wide when we had few texts.
+
+| Writers | Texts | Put above the band | Put in the "can't tell" band |
+|---|---|---|---|
+| Stanford course abstracts | 132 | 0 in 100 (likely 0 to 3) | 6 in 100 (likely 3 to 12) |
+| TOEFL essays, non-native students | 63 | 3 in 100 (likely 0.9 to 11) | 57 in 100 (likely 45 to 69) |
+| US college essays | 70 | 0 in 100 (likely 0 to 5) | 6 in 100 (likely 2 to 14) |
+| US eighth-grade essays | 88 | 0 in 100 (likely 0 to 4) | 5 in 100 (likely 2 to 11) |
+| US school essays, English learners (ELLIPSE) | 298 | 0 in 100 (likely 0 to 1) | 30 in 100 (likely 25 to 35) |
+| US school essays, English learners (PERSUADE) | 400 | 0 in 100 (likely 0 to 0.9) | 19 in 100 (likely 16 to 23) |
+| US school essays, not English learners (PERSUADE) | 400 | 0 in 100 (likely 0 to 0.9) | 28 in 100 (likely 24 to 33) |
+| All native writers together | 690 | 0 in 100 (likely 0 to 0.5) | 19 in 100 (likely 16 to 22) |
+| All non-native writers together | 761 | 0.3 in 100 (likely 0.1 to 0.9) | 26 in 100 (likely 23 to 30) |
+
+**If the top of the band were higher.** Fewer people would be put above it, and less AI text would be caught:
+
+| Top of band | Non-native writers put above | Native writers put above | AI caught: ChatGPT (HC3) | AI caught: GPT-4 (MAGE) | AI caught: RAID (11 models) | AI caught: newer models (DetectRL-X and Beemo) | AI caught: reworded by another AI (MAGE) |
+|---|---|---|---|---|---|---|---|
+| 84% | 0.3 in 100 (likely 0.1 to 0.9) | 0 in 100 (likely 0 to 0.5) | 99 in 100 (likely 98 to 99) | 74 in 100 (likely 70 to 79) | 71 in 100 (likely 67 to 74) | 36 in 100 (likely 33 to 39) | 2 in 100 (likely 2 to 3) |
+| 88% | 0.1 in 100 (likely 0.0 to 0.7) | 0 in 100 (likely 0 to 0.5) | 99 in 100 (likely 97 to 99) | 69 in 100 (likely 64 to 74) | 69 in 100 (likely 65 to 72) | 33 in 100 (likely 30 to 36) | 1 in 100 (likely 0.9 to 2) |
+| 90% | 0 in 100 (likely 0 to 0.5) | 0 in 100 (likely 0 to 0.5) | 98 in 100 (likely 97 to 99) | 68 in 100 (likely 63 to 72) | 68 in 100 (likely 64 to 72) | 32 in 100 (likely 29 to 35) | 1 in 100 (likely 0.7 to 2) |
+| 92% | 0 in 100 (likely 0 to 0.5) | 0 in 100 (likely 0 to 0.5) | 98 in 100 (likely 96 to 99) | 63 in 100 (likely 58 to 68) | 67 in 100 (likely 63 to 70) | 30 in 100 (likely 27 to 33) | 0.9 in 100 (likely 0.6 to 2) |
+| 95% | 0 in 100 (likely 0 to 0.5) | 0 in 100 (likely 0 to 0.5) | 97 in 100 (likely 95 to 98) | 53 in 100 (likely 48 to 58) | 64 in 100 (likely 60 to 68) | 28 in 100 (likely 25 to 31) | 0.3 in 100 (likely 0.1 to 0.7) |
 <!-- text-accuracy:end -->
 
 What this means in plain words:

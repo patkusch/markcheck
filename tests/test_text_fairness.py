@@ -43,3 +43,13 @@ def test_altered_sets_other_than_rewording_are_left_out():
     assert tf.ai_set_name({"split": "raid", "set": "raid_paraphrase", "attack": "paraphrase"})
     assert tf.ai_set_name({"split": "raid", "set": "raid_reworded", "attack": "paraphrase"})
     assert tf.ai_set_name({"split": "mage", "set": "mage"}) == "GPT-4 (MAGE)"
+
+
+def test_newer_model_sets_get_a_plain_name():
+    assert tf.ai_set_name({"split": "newmodels", "set": "newmodels", "attack": "none"}) == "newer models (DetectRL-X and Beemo)"
+
+
+def test_essay_groups_get_plain_names():
+    assert tf.group_name({"split": "persuade", "source": "persuade", "group": "non_ell"}) == \
+        "US school essays, not English learners (PERSUADE)"
+    assert tf.group_name({"split": "x", "source": "other", "group": "g"}) == "other: g"

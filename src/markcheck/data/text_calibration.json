@@ -248,5 +248,574 @@
     }
   },
   "unseen_note": "When one kind of writing (news) was left out of fitting, 14 in 100 people's texts of that kind were put above the band. Expect more mistakes on writing unlike our examples.",
-  "data_note": "The chance is fitted on public examples by people and by AI: answers from HC3 (ChatGPT, 2023) and news, reviews, dialogue summaries and medical abstracts from MAGE (GPT-4), half AI and half people. It holds only for similar text with a similar mix; where AI text is rarer, the chance is lower than shown."
+  "data_note": "The chance is fitted on public examples by people and by AI: answers from HC3 (ChatGPT, 2023) and news, reviews, dialogue summaries and medical abstracts from MAGE (GPT-4), half AI and half people. It holds only for similar text with a similar mix; where AI text is rarer, the chance is lower than shown.",
+  "fairness": {
+    "computed_with": {
+      "uncertain_band": [
+        0.07,
+        0.84
+      ],
+      "intercept": 1.9574499844144397,
+      "coef": [
+        -6.098380520975347,
+        -0.7012381771689522,
+        -1.0416978790001163,
+        -0.5708185555525821,
+        -1.2539136950653373,
+        0.48660158302113266
+      ],
+      "min_words": 100
+    },
+    "band": [
+      0.07,
+      0.84
+    ],
+    "min_words": 100,
+    "note": "People's texts only, at least min_words long, never used for fitting. flagged = put above the band; cant_tell = inside the band. ci95 = 95% Wilson interval.",
+    "groups": {
+      "Stanford course abstracts": {
+        "status": "native",
+        "flagged": {
+          "k": 0,
+          "n": 132,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0283
+          ]
+        },
+        "cant_tell": {
+          "k": 8,
+          "n": 132,
+          "rate": 0.06060606060606061,
+          "ci95": [
+            0.031,
+            0.115
+          ]
+        },
+        "median_chance": 0.0034
+      },
+      "TOEFL essays, non-native students": {
+        "status": "non-native",
+        "flagged": {
+          "k": 2,
+          "n": 63,
+          "rate": 0.031746031746031744,
+          "ci95": [
+            0.0087,
+            0.1086
+          ]
+        },
+        "cant_tell": {
+          "k": 36,
+          "n": 63,
+          "rate": 0.5714285714285714,
+          "ci95": [
+            0.4486,
+            0.686
+          ]
+        },
+        "median_chance": 0.0936
+      },
+      "US college essays": {
+        "status": "native",
+        "flagged": {
+          "k": 0,
+          "n": 70,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.052
+          ]
+        },
+        "cant_tell": {
+          "k": 4,
+          "n": 70,
+          "rate": 0.05714285714285714,
+          "ci95": [
+            0.0224,
+            0.1379
+          ]
+        },
+        "median_chance": 0.0116
+      },
+      "US eighth-grade essays": {
+        "status": "native",
+        "flagged": {
+          "k": 0,
+          "n": 88,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0418
+          ]
+        },
+        "cant_tell": {
+          "k": 4,
+          "n": 88,
+          "rate": 0.045454545454545456,
+          "ci95": [
+            0.0178,
+            0.1111
+          ]
+        },
+        "median_chance": 0.0026
+      },
+      "US school essays, English learners (ELLIPSE)": {
+        "status": "non-native",
+        "flagged": {
+          "k": 0,
+          "n": 298,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0127
+          ]
+        },
+        "cant_tell": {
+          "k": 88,
+          "n": 298,
+          "rate": 0.2953020134228188,
+          "ci95": [
+            0.2464,
+            0.3494
+          ]
+        },
+        "median_chance": 0.0248
+      },
+      "US school essays, English learners (PERSUADE)": {
+        "status": "non-native",
+        "flagged": {
+          "k": 0,
+          "n": 400,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0095
+          ]
+        },
+        "cant_tell": {
+          "k": 77,
+          "n": 400,
+          "rate": 0.1925,
+          "ci95": [
+            0.1569,
+            0.234
+          ]
+        },
+        "median_chance": 0.0127
+      },
+      "US school essays, not English learners (PERSUADE)": {
+        "status": "native",
+        "flagged": {
+          "k": 0,
+          "n": 400,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0095
+          ]
+        },
+        "cant_tell": {
+          "k": 112,
+          "n": 400,
+          "rate": 0.28,
+          "ci95": [
+            0.2383,
+            0.3259
+          ]
+        },
+        "median_chance": 0.0307
+      }
+    },
+    "pooled": {
+      "native": {
+        "status": "native",
+        "flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "cant_tell": {
+          "k": 128,
+          "n": 690,
+          "rate": 0.1855072463768116,
+          "ci95": [
+            0.1583,
+            0.2162
+          ]
+        },
+        "median_chance": 0.0132
+      },
+      "non-native": {
+        "status": "non-native",
+        "flagged": {
+          "k": 2,
+          "n": 761,
+          "rate": 0.002628120893561104,
+          "ci95": [
+            0.0007,
+            0.0095
+          ]
+        },
+        "cant_tell": {
+          "k": 201,
+          "n": 761,
+          "rate": 0.26412614980289095,
+          "ci95": [
+            0.234,
+            0.2966
+          ]
+        },
+        "median_chance": 0.0204
+      }
+    },
+    "short_texts_left_out": 43,
+    "band_tradeoff": [
+      {
+        "band_top": 0.84,
+        "non_native_flagged": {
+          "k": 2,
+          "n": 761,
+          "rate": 0.002628120893561104,
+          "ci95": [
+            0.0007,
+            0.0095
+          ]
+        },
+        "native_flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "ai_caught": {
+          "ChatGPT (HC3)": {
+            "k": 578,
+            "n": 585,
+            "rate": 0.9880341880341881,
+            "ci95": [
+              0.9755,
+              0.9942
+            ]
+          },
+          "GPT-4 (MAGE)": {
+            "k": 271,
+            "n": 364,
+            "rate": 0.7445054945054945,
+            "ci95": [
+              0.6973,
+              0.7866
+            ]
+          },
+          "RAID (11 models)": {
+            "k": 450,
+            "n": 638,
+            "rate": 0.7053291536050157,
+            "ci95": [
+              0.6688,
+              0.7394
+            ]
+          },
+          "newer models (DetectRL-X and Beemo)": {
+            "k": 330,
+            "n": 921,
+            "rate": 0.3583061889250814,
+            "ci95": [
+              0.328,
+              0.3898
+            ]
+          },
+          "reworded by another AI (MAGE)": {
+            "k": 32,
+            "n": 1499,
+            "rate": 0.02134756504336224,
+            "ci95": [
+              0.0152,
+              0.03
+            ]
+          }
+        }
+      },
+      {
+        "band_top": 0.88,
+        "non_native_flagged": {
+          "k": 1,
+          "n": 761,
+          "rate": 0.001314060446780552,
+          "ci95": [
+            0.0002,
+            0.0074
+          ]
+        },
+        "native_flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "ai_caught": {
+          "ChatGPT (HC3)": {
+            "k": 577,
+            "n": 585,
+            "rate": 0.9863247863247864,
+            "ci95": [
+              0.9732,
+              0.9931
+            ]
+          },
+          "GPT-4 (MAGE)": {
+            "k": 252,
+            "n": 364,
+            "rate": 0.6923076923076923,
+            "ci95": [
+              0.6431,
+              0.7375
+            ]
+          },
+          "RAID (11 models)": {
+            "k": 438,
+            "n": 638,
+            "rate": 0.6865203761755486,
+            "ci95": [
+              0.6495,
+              0.7213
+            ]
+          },
+          "newer models (DetectRL-X and Beemo)": {
+            "k": 303,
+            "n": 921,
+            "rate": 0.3289902280130293,
+            "ci95": [
+              0.2994,
+              0.36
+            ]
+          },
+          "reworded by another AI (MAGE)": {
+            "k": 20,
+            "n": 1499,
+            "rate": 0.0133422281521014,
+            "ci95": [
+              0.0087,
+              0.0205
+            ]
+          }
+        }
+      },
+      {
+        "band_top": 0.9,
+        "non_native_flagged": {
+          "k": 0,
+          "n": 761,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.005
+          ]
+        },
+        "native_flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "ai_caught": {
+          "ChatGPT (HC3)": {
+            "k": 575,
+            "n": 585,
+            "rate": 0.9829059829059829,
+            "ci95": [
+              0.9688,
+              0.9907
+            ]
+          },
+          "GPT-4 (MAGE)": {
+            "k": 246,
+            "n": 364,
+            "rate": 0.6758241758241759,
+            "ci95": [
+              0.6261,
+              0.7219
+            ]
+          },
+          "RAID (11 models)": {
+            "k": 434,
+            "n": 638,
+            "rate": 0.6802507836990596,
+            "ci95": [
+              0.6431,
+              0.7153
+            ]
+          },
+          "newer models (DetectRL-X and Beemo)": {
+            "k": 291,
+            "n": 921,
+            "rate": 0.31596091205211724,
+            "ci95": [
+              0.2868,
+              0.3467
+            ]
+          },
+          "reworded by another AI (MAGE)": {
+            "k": 16,
+            "n": 1499,
+            "rate": 0.01067378252168112,
+            "ci95": [
+              0.0066,
+              0.0173
+            ]
+          }
+        }
+      },
+      {
+        "band_top": 0.92,
+        "non_native_flagged": {
+          "k": 0,
+          "n": 761,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.005
+          ]
+        },
+        "native_flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "ai_caught": {
+          "ChatGPT (HC3)": {
+            "k": 571,
+            "n": 585,
+            "rate": 0.976068376068376,
+            "ci95": [
+              0.9602,
+              0.9857
+            ]
+          },
+          "GPT-4 (MAGE)": {
+            "k": 229,
+            "n": 364,
+            "rate": 0.6291208791208791,
+            "ci95": [
+              0.5784,
+              0.6772
+            ]
+          },
+          "RAID (11 models)": {
+            "k": 425,
+            "n": 638,
+            "rate": 0.6661442006269592,
+            "ci95": [
+              0.6287,
+              0.7016
+            ]
+          },
+          "newer models (DetectRL-X and Beemo)": {
+            "k": 279,
+            "n": 921,
+            "rate": 0.30293159609120524,
+            "ci95": [
+              0.2741,
+              0.3334
+            ]
+          },
+          "reworded by another AI (MAGE)": {
+            "k": 14,
+            "n": 1499,
+            "rate": 0.009339559706470981,
+            "ci95": [
+              0.0056,
+              0.0156
+            ]
+          }
+        }
+      },
+      {
+        "band_top": 0.95,
+        "non_native_flagged": {
+          "k": 0,
+          "n": 761,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.005
+          ]
+        },
+        "native_flagged": {
+          "k": 0,
+          "n": 690,
+          "rate": 0.0,
+          "ci95": [
+            0.0,
+            0.0055
+          ]
+        },
+        "ai_caught": {
+          "ChatGPT (HC3)": {
+            "k": 568,
+            "n": 585,
+            "rate": 0.9709401709401709,
+            "ci95": [
+              0.954,
+              0.9818
+            ]
+          },
+          "GPT-4 (MAGE)": {
+            "k": 193,
+            "n": 364,
+            "rate": 0.5302197802197802,
+            "ci95": [
+              0.4789,
+              0.5809
+            ]
+          },
+          "RAID (11 models)": {
+            "k": 408,
+            "n": 638,
+            "rate": 0.6394984326018809,
+            "ci95": [
+              0.6015,
+              0.6758
+            ]
+          },
+          "newer models (DetectRL-X and Beemo)": {
+            "k": 254,
+            "n": 921,
+            "rate": 0.2757871878393051,
+            "ci95": [
+              0.2479,
+              0.3055
+            ]
+          },
+          "reworded by another AI (MAGE)": {
+            "k": 4,
+            "n": 1499,
+            "rate": 0.00266844563042028,
+            "ci95": [
+              0.001,
+              0.0068
+            ]
+          }
+        }
+      }
+    ]
+  }
 }

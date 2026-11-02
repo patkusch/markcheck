@@ -193,7 +193,7 @@ What this means in plain words:
 
 - **It is good at text like its examples, and much worse at anything else.**
 - **Reworded AI text gets past it almost every time.**
-- **Newer AI models are caught far less often.** It was fitted on text from 2019-2023 models. Text by GPT-4o, Gemini 2.5 Flash and DeepSeek-V3 is mostly missed.
+- **Newer AI models are caught far less often.** It was fitted on text by ChatGPT and GPT-4 from 2023. Text by GPT-4o, Gemini 2.5 Flash and DeepSeek-V3 is mostly missed.
 - **People's writing unlike its examples is flagged more often.** In the newer-model sets, more people's texts were put above the band than in the sets it was fitted on.
 - **It is unfair to non-native English writers.** Their essays got higher estimates than US students' essays, as other detectors do.
 - **The percentage depends on the mix.** It was fitted on half AI and half people's text. Where AI text is rarer, the chance is lower than shown.

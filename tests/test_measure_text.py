@@ -127,3 +127,13 @@ def test_leave_one_model_out_never_fits_on_the_left_out_model(monkeypatch):
     out = exp.leave_one_model_out(min_n=10)
     assert set(out) == {"a", "b"}
     assert seen == [{"human", "b"}, {"human", "a"}]
+
+
+def test_in_100_words():
+    assert mt.in_100(0.123) == "12 in 100"
+    assert mt.in_100(0.004) == "fewer than 1 in 100"
+    assert mt.in_100(None) == mt.in_100(float("nan")) == "not measured"
+
+
+def test_clean_writes_null_for_missing_numbers():
+    assert mt.clean({"a": float("nan"), "b": [1.0, float("inf")]}) == {"a": None, "b": [1.0, None]}

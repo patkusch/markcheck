@@ -64,3 +64,7 @@ python -m markcheck.textcheck.accuracy --write-readme
 - `--merge` adds the fairness numbers, worked out with that same fit.
 - The last step copies the numbers into the README, so the two cannot drift apart.
 - Use `--baseline` instead of a refit to measure the shipped fit as it is.
+
+## Where past results are kept
+
+Each measuring run worth keeping is saved in `docs/results/`, as a JSON file for scripts and a text file for people. They hold numbers only, never the texts. Save new runs there with `--json-out` and say in `docs/rounds.md` whether the fit shipped.

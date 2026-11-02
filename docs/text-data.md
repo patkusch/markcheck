@@ -47,3 +47,20 @@ python scripts/text_features.py HuggingFaceTB/SmolLM2-360M HuggingFaceTB/SmolLM2
 
 The last step scores every text with the two small models, about half a second per text on a laptop.
 The scores are kept in the same folder, outside git.
+
+## How to measure and ship a new fit
+
+```
+python scripts/measure_text.py HuggingFaceTB/SmolLM2-360M-Instruct --train-on hc3+mage+raid \
+    --compare-with old_calibration.json --json-out results.json
+python scripts/measure_text.py HuggingFaceTB/SmolLM2-360M-Instruct --train-on hc3+mage+raid --write
+python scripts/text_fairness.py --merge
+python -m markcheck.textcheck.accuracy --write-readme
+```
+
+- The first step fits on the train side and measures on the texts kept aside. It also refits once per AI model and once per kind of writing, each time leaving that one out.
+- `--compare-with` measures the old fit on the same texts kept aside and applies the ship rule. A new fit ships only if at most 1 in 100 people's texts from HC3, MAGE and RAID are flagged, and no kind of writing has more people's texts flagged than before.
+- `--write` saves the new fit, and the numbers the command line shows, to `src/markcheck/data/text_calibration.json`.
+- `--merge` adds the fairness numbers, worked out with that same fit.
+- The last step copies the numbers into the README, so the two cannot drift apart.
+- Use `--baseline` instead of a refit to measure the shipped fit as it is.

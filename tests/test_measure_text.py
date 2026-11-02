@@ -69,3 +69,61 @@ def test_ship_rule_overall_limit_is_on_the_fitting_sources():
     new["overall_fit_sources"] = {"people_above_band": 0.008, "ai_above_band": 0.9}
     out = mt.compare(old, new)
     assert out["ship"] and out["overall_key"] == "overall_fit_sources"
+
+
+def test_auroc_and_catch_rate_known_values():
+    assert mt.auroc([0.9, 0.8, 0.2, 0.1], [1, 1, 0, 0]) == 1.0
+    assert mt.auroc([0.5, 0.5], [1, 0]) == 0.5
+    # 100 people's scores 0..0.99: at 1 in 100 flagged the cut is 0.98, so only AI above 0.98 counts
+    s = [i / 100 for i in range(100)] + [0.985, 0.5]
+    assert mt.tpr_at_fpr(s, [0] * 100 + [1, 1]) == 0.5
+
+
+def test_each_source_counts_the_same_in_fitting():
+    tr = [row(source="hc3", label=i % 2) for i in range(10)] + [row(source="raid", label=i % 2) for i in range(90)]
+    w = mt.weights_for(tr, "source")
+    hc3 = sum(w[i] for i, r in enumerate(tr) if r["source"] == "hc3")
+    raid = sum(w[i] for i, r in enumerate(tr) if r["source"] == "raid")
+    assert hc3 == pytest.approx(raid)
+    w2 = mt.weights_for(tr, "source_label_model")
+    assert sum(w2) == pytest.approx(len(tr))
+
+
+def _toy(n=200, seed=0):
+    import random
+    rnd = random.Random(seed)
+    out = []
+    for i in range(n):
+        lab = i % 2
+        m = "human" if not lab else ("a" if i % 4 == 1 else "b")
+        out.append(row(label=lab, model=m, kind="news" if i % 3 else "reviews", side="train", set="raid",
+                       bino=rnd.gauss(1.0 - 0.3 * lab, 0.1), source="raid"))
+    return out
+
+
+def test_a_fit_separates_toy_data_and_its_band_stays_sane():
+    tr = _toy()
+    fit = mt.Fit(tr, ["bino"])
+    p = fit.predict(tr)
+    assert mt.auroc(p, [r["label"] for r in tr]) > 0.9
+    lo, hi = fit.band
+    assert lo <= 0.35 and 0.65 <= hi <= 0.99
+
+
+def test_leave_one_model_out_never_fits_on_the_left_out_model(monkeypatch):
+    tr, te = _toy(seed=1), _toy(seed=2)
+    seen = []
+    real_fit = mt.Fit
+
+    class Spy(real_fit):
+        def __init__(self, rows, *a, **k):
+            seen.append({r["model"] for r in rows})
+            super().__init__(rows, *a, **k)
+
+    monkeypatch.setattr(mt, "Fit", Spy)
+    exp = mt.Exp.__new__(mt.Exp)
+    exp.a = type("A", (), {"weights": "source", "band": "auto", "l2": 1e-2})()
+    exp.feats, exp.tr, exp.te = ["bino"], tr, te
+    out = exp.leave_one_model_out(min_n=10)
+    assert set(out) == {"a", "b"}
+    assert seen == [{"human", "b"}, {"human", "a"}]

@@ -238,3 +238,18 @@ We refitted the check on HC3, MAGE and RAID together, using 3,990 texts for fitt
 | People's web text flagged | 9 in 100 | 20 in 100 |
 
 The new fit catches more AI text. But it flags more people's writing in five kinds of writing and in one essay set. The ship rule says no kind of writing may get worse, so the round 3 fit stays. Full numbers: `docs/results/round7-refit-hc3-mage-raid.txt`.
+
+### The newest AI models are mostly missed
+
+These figures come from the round 7 fit. They show how many AI texts land above the "can't tell" band.
+
+| AI model | AI texts caught |
+|---|---|
+| ChatGPT (2023) | 98 in 100 |
+| GPT-4 | 71 in 100 |
+| Qwen-Max | 77 in 100 |
+| Gemini 2.5 Flash | 14 in 100 |
+| DeepSeek-V3 | 8 in 100 |
+| GPT-4o | 6 in 100 |
+
+The check was built on small, older models. Text from 2024-2025 models reads much like people's writing to it. On these models the check is little better than a coin toss: the chance an AI text scores higher than a person's is 64-69 in 100.

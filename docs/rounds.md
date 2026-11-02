@@ -223,3 +223,18 @@ Not done yet:
 - There are no leave-one-model-out or leave-one-kind-out results yet.
 - There are no reworded-text results on RAID's reworded set yet.
 - The held-back test about unseen AI models is still out.
+
+## Text round 7 (2026-11-02)
+
+### The wider refit failed the ship rule, so it did not ship
+
+We refitted the check on HC3, MAGE and RAID together, using 3,990 texts for fitting. We then measured both the old fit and the new one on the same 9,340 texts kept aside.
+
+| | Round 3 fit (shipped) | Round 7 fit (rejected) |
+|---|---|---|
+| People's texts flagged, HC3 + MAGE + RAID | 0.33 in 100 | 0.88 in 100 |
+| AI texts caught, same texts | 76 in 100 | 82 in 100 |
+| People's news flagged | 11 in 100 | 19 in 100 |
+| People's web text flagged | 9 in 100 | 20 in 100 |
+
+The new fit catches more AI text. But it flags more people's writing in five kinds of writing and in one essay set. The ship rule says no kind of writing may get worse, so the round 3 fit stays. Full numbers: `docs/results/round7-refit-hc3-mage-raid.txt`.

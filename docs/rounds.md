@@ -192,3 +192,19 @@ Not done yet:
 - Reworded AI text has not been measured on RAID's reworded set yet. It is still caught only 2 times in 100.
 - Flag rates for non-native writers, with confidence ranges, have not been run on the larger set yet.
 - A test that the "How often" list names AI models the check never saw was written, but it was held back because it fails until the refit is done.
+
+## Text round 5 (stopped early, 2026-11-02)
+
+What landed:
+- A data README listing where each set comes from, its licence and its size.
+- Measuring now uses one name per AI model and names the reworded sets plainly. It fits on newer models only when asked.
+- A way to compare a new fit with an older one on the same held-out texts.
+- The ship rule: at most 1 in 100 people's texts flagged, measured on held-out HC3, MAGE and RAID texts.
+- The calibration writer can name each newer AI model the fit never saw in the "How often" list.
+
+Not done yet:
+- The refit on the wider data has not been run and checked against the ship rule. All numbers shown are still round 3's.
+- There are no leave-one-model-out or leave-one-kind-out results yet.
+- There are no reworded-text results on RAID's reworded set yet.
+- There are no fairness flag rates with confidence ranges yet.
+- The held-back test about unseen AI models is still out. It goes back in after the refit.

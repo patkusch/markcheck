@@ -300,3 +300,20 @@ We added 108 more news articles by people from RAID's unused pool. Every earlier
 The extra news moved things the right way. But the round 8 fit still flags more people's news than the shipped one. Dialogue, web text and one essay set are also still worse. So it fails the ship rule, and the round 3 fit stays.
 
 Full numbers: `docs/results/round8-refit-more-people-news.txt`.
+
+### A stricter "can't tell" band passes the ship rule, but is not better
+
+The round 8 refit says "AI" more readily than the shipped fit. So we tried raising the top of its "can't tell" band from 87% to 96%. Then it only says "AI" when it is very sure.
+
+With that band it passes the ship rule. But it passes mainly by saying "can't tell" much more often:
+
+| On held-out texts | Shipped fit | Round 8 refit, strict band |
+|---|---|---|
+| People's texts flagged (HC3, MAGE, RAID) | 0.31 in 100 | 0.21 in 100 |
+| AI texts caught (HC3, MAGE, RAID) | 76 in 100 | 72 in 100 |
+| Non-native students' essays put in "can't tell" | 57 in 100 | 78 in 100 |
+| US students' essays put in "can't tell" | 5 in 100 | 19 in 100 |
+| Chance a GPT-4o text scores higher than a person's | 80 in 100 | 67 in 100 |
+| Chance a DeepSeek-V3 text scores higher than a person's | 73 in 100 | 65 in 100 |
+
+So it is more cautious, but it is worse at telling the newest AI models apart from people. We did not ship it. A rule that only counts false flags can be passed by refusing to answer. Next time, the ship rule should also check that "can't tell" does not grow much.

@@ -1,0 +1,87 @@
+loaded 16511 texts in 2s; train 1617, held out 9749
+band [0.07, 0.84]  n_train 1617 {'hc3': 907, 'mage': 710}
+coef {'bino': -6.098, 'top10': -0.701, 'spread': -1.042, 'fdg': -0.571, 'logppl_perf': -1.254, 'log_tokens': 0.487} intercept 1.957
+overall held-out (no attack): n=5814  auroc=0.935  tpr_at_1pct_fpr=0.561  ece=0.125  people_above_band=0.034  people_in_band=0.239  ai_above_band=0.671  ai_below_band=0.067
+-- sets
+   college                            n=70  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.027  people_above_band=0.000  people_in_band=0.057
+   cs224n                             n=132  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.016  people_above_band=0.000  people_in_band=0.061
+   heldout                            n=914  auroc=0.998  tpr_at_1pct_fpr=0.997  ece=0.018  people_above_band=0.003  people_in_band=0.152  ai_above_band=0.988  ai_below_band=0.002
+   mage                               n=717  auroc=0.969  tpr_at_1pct_fpr=0.799  ece=0.039  people_above_band=0.006  people_in_band=0.323  ai_above_band=0.745  ai_below_band=0.025
+   mage_para                          n=1852  auroc=0.669  tpr_at_1pct_fpr=0.041  ece=0.636  people_above_band=0.006  people_in_band=0.323  ai_above_band=0.021  ai_below_band=0.457
+   toefl                              n=63  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.200  people_above_band=0.032  people_in_band=0.571
+   us_students                        n=88  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.014  people_above_band=0.000  people_in_band=0.045
+   ellipse                            n=298  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.068  people_above_band=0.000  people_in_band=0.295
+   newmodels                          n=1778  auroc=0.830  tpr_at_1pct_fpr=0.174  ece=0.209  people_above_band=0.068  people_in_band=0.254  ai_above_band=0.358  ai_below_band=0.153
+   persuade                           n=800  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.064  people_above_band=0.000  people_in_band=0.236
+   raid                               n=2405  auroc=0.966  tpr_at_1pct_fpr=0.830  ece=0.166  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.706  ai_below_band=0.055
+   raid_reworded                      n=632  auroc=0.875  tpr_at_1pct_fpr=0.541  ece=0.263  people_above_band=0.000  people_in_band=0.567  ai_above_band=0.496  ai_below_band=0.074
+   train                              n=1617  auroc=0.989  tpr_at_1pct_fpr=0.887  ece=0.012  people_above_band=0.010  people_in_band=0.252  ai_above_band=0.886  ai_below_band=0.011
+-- by_source
+   beemo                              n=338  auroc=0.875  tpr_at_1pct_fpr=0.333  ece=0.110  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.731  ai_below_band=0.070
+   detectrlx                          n=1440  auroc=0.824  tpr_at_1pct_fpr=0.144  ece=0.235  people_above_band=0.053  people_in_band=0.239  ai_above_band=0.254  ai_below_band=0.176
+   hc3                                n=914  auroc=0.998  tpr_at_1pct_fpr=0.997  ece=0.018  people_above_band=0.003  people_in_band=0.152  ai_above_band=0.988  ai_below_band=0.002
+   mage                               n=717  auroc=0.969  tpr_at_1pct_fpr=0.799  ece=0.039  people_above_band=0.006  people_in_band=0.323  ai_above_band=0.745  ai_below_band=0.025
+   raid                               n=2405  auroc=0.966  tpr_at_1pct_fpr=0.830  ece=0.166  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.706  ai_below_band=0.055
+-- by_model
+   Llama-2-13b-chat-hf                n=162  auroc=0.948  tpr_at_1pct_fpr=0.480  ece=0.201  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.800  ai_below_band=0.000
+   Llama-2-70b-chat-hf                n=161  auroc=0.929  tpr_at_1pct_fpr=0.458  ece=0.198  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.792  ai_below_band=0.042
+   Llama-2-7b-chat-hf                 n=161  auroc=0.936  tpr_at_1pct_fpr=0.375  ece=0.201  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.875  ai_below_band=0.000
+   Mistral-7B-Instruct-v0.1           n=146  auroc=0.865  tpr_at_1pct_fpr=0.250  ece=0.211  people_above_band=0.146  people_in_band=0.354  ai_above_band=0.812  ai_below_band=0.062
+   Mixtral-8x7B-Instruct-v0.1         n=158  auroc=0.817  tpr_at_1pct_fpr=0.333  ece=0.184  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.524  ai_below_band=0.143
+   chatgpt                            n=1399  auroc=0.998  tpr_at_1pct_fpr=0.994  ece=0.021  people_above_band=0.002  people_in_band=0.168  ai_above_band=0.981  ai_below_band=0.001
+   cohere                             n=498  auroc=0.944  tpr_at_1pct_fpr=0.724  ece=0.129  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.434  ai_below_band=0.090
+   cohere-chat                        n=442  auroc=0.965  tpr_at_1pct_fpr=0.877  ece=0.044  people_above_band=0.000  people_in_band=0.190  ai_above_band=0.732  ai_below_band=0.061
+   deepseek-v3                        n=900  auroc=0.725  tpr_at_1pct_fpr=0.000  ece=0.154  people_above_band=0.053  people_in_band=0.239  ai_above_band=0.044  ai_below_band=0.328
+   gemini-2.5-flash                   n=900  auroc=0.801  tpr_at_1pct_fpr=0.028  ece=0.125  people_above_band=0.053  people_in_band=0.239  ai_above_band=0.106  ai_below_band=0.167
+   gemma-2b-it                        n=146  auroc=0.928  tpr_at_1pct_fpr=0.188  ece=0.221  people_above_band=0.146  people_in_band=0.354  ai_above_band=0.812  ai_below_band=0.000
+   gemma-7b-it                        n=153  auroc=0.947  tpr_at_1pct_fpr=0.375  ece=0.219  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.938  ai_below_band=0.000
+   gpt-4                              n=1227  auroc=0.973  tpr_at_1pct_fpr=0.769  ece=0.050  people_above_band=0.003  people_in_band=0.263  ai_above_band=0.692  ai_below_band=0.025
+   gpt-4o                             n=900  auroc=0.802  tpr_at_1pct_fpr=0.011  ece=0.123  people_above_band=0.053  people_in_band=0.239  ai_above_band=0.061  ai_below_band=0.194
+   gpt2                               n=485  auroc=0.967  tpr_at_1pct_fpr=0.779  ece=0.086  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.572  ai_below_band=0.058
+   gpt3                               n=367  auroc=0.979  tpr_at_1pct_fpr=0.887  ece=0.018  people_above_band=0.000  people_in_band=0.193  ai_above_band=0.831  ai_below_band=0.024
+   llama-chat                         n=477  auroc=1.000  tpr_at_1pct_fpr=1.000  ece=0.030  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.990  ai_below_band=0.000
+   mistral                            n=486  auroc=0.892  tpr_at_1pct_fpr=0.632  ece=0.128  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.565  ai_below_band=0.191
+   mistral-chat                       n=459  auroc=0.999  tpr_at_1pct_fpr=0.989  ece=0.030  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.951  ai_below_band=0.000
+   mpt                                n=498  auroc=0.925  tpr_at_1pct_fpr=0.579  ece=0.157  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.412  ai_below_band=0.118
+   mpt-chat                           n=420  auroc=0.998  tpr_at_1pct_fpr=0.972  ece=0.032  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.923  ai_below_band=0.000
+   qwen-max                           n=900  auroc=0.967  tpr_at_1pct_fpr=0.539  ece=0.091  people_above_band=0.053  people_in_band=0.239  ai_above_band=0.806  ai_below_band=0.017
+   tulu-2-13b                         n=156  auroc=0.739  tpr_at_1pct_fpr=0.316  ece=0.228  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.579  ai_below_band=0.263
+   tulu-2-7b                          n=149  auroc=0.851  tpr_at_1pct_fpr=0.368  ece=0.195  people_above_band=0.146  people_in_band=0.354  ai_above_band=0.632  ai_below_band=0.053
+   zephyr-7b-beta                     n=158  auroc=0.769  tpr_at_1pct_fpr=0.095  ece=0.190  people_above_band=0.146  people_in_band=0.336  ai_above_band=0.571  ai_below_band=0.143
+-- by_kind
+   abstracts                          n=246  auroc=0.963  tpr_at_1pct_fpr=0.844  ece=0.173  people_above_band=0.000  people_in_band=0.238  ai_above_band=0.707  ai_below_band=0.053
+   academic                           n=240  auroc=0.991  tpr_at_1pct_fpr=0.917  ece=0.253  people_above_band=0.000  people_in_band=0.008  ai_above_band=0.267  ai_below_band=0.133
+   books                              n=289  auroc=0.986  tpr_at_1pct_fpr=0.929  ece=0.133  people_above_band=0.000  people_in_band=0.147  ai_above_band=0.749  ai_below_band=0.031
+   closed_qa                          n=7  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.316  ai_above_band=0.571  ai_below_band=0.143
+   dialogue                           n=148  auroc=0.994  tpr_at_1pct_fpr=0.909  ece=0.072  people_above_band=0.000  people_in_band=0.463  ai_above_band=0.848  ai_below_band=0.000
+   generation                         n=138  auroc=0.939  tpr_at_1pct_fpr=0.243  ece=0.097  people_above_band=0.125  people_in_band=0.344  ai_above_band=0.892  ai_below_band=0.014
+   medical_qa                         n=187  auroc=0.995  tpr_at_1pct_fpr=0.773  ece=0.021  people_above_band=0.010  people_in_band=0.091  ai_above_band=0.886  ai_below_band=0.011
+   news                               n=829  auroc=0.826  tpr_at_1pct_fpr=0.324  ece=0.136  people_above_band=0.087  people_in_band=0.547  ai_above_band=0.546  ai_below_band=0.073
+   novel                              n=240  auroc=0.961  tpr_at_1pct_fpr=0.758  ece=0.183  people_above_band=0.000  people_in_band=0.083  ai_above_band=0.417  ai_below_band=0.100
+   open_qa                            n=46  auroc=0.914  tpr_at_1pct_fpr=0.583  ece=0.100  people_above_band=0.300  people_in_band=0.400  ai_above_band=0.972  ai_below_band=0.028
+   poetry                             n=270  auroc=0.978  tpr_at_1pct_fpr=0.934  ece=0.165  people_above_band=0.000  people_in_band=0.143  ai_above_band=0.750  ai_below_band=0.039
+   qa                                 n=914  auroc=0.998  tpr_at_1pct_fpr=0.997  ece=0.018  people_above_band=0.003  people_in_band=0.152  ai_above_band=0.988  ai_below_band=0.002
+   recipes                            n=298  auroc=0.960  tpr_at_1pct_fpr=0.787  ece=0.247  people_above_band=0.000  people_in_band=0.086  ai_above_band=0.597  ai_below_band=0.110
+   reddit                             n=250  auroc=0.943  tpr_at_1pct_fpr=0.739  ece=0.222  people_above_band=0.000  people_in_band=0.143  ai_above_band=0.662  ai_below_band=0.117
+   reviews                            n=505  auroc=0.995  tpr_at_1pct_fpr=0.924  ece=0.110  people_above_band=0.000  people_in_band=0.036  ai_above_band=0.771  ai_below_band=0.018
+   rewrite                            n=119  auroc=0.834  tpr_at_1pct_fpr=0.175  ece=0.146  people_above_band=0.143  people_in_band=0.357  ai_above_band=0.556  ai_below_band=0.095
+   seo                                n=240  auroc=0.892  tpr_at_1pct_fpr=0.050  ece=0.350  people_above_band=0.017  people_in_band=0.058  ai_above_band=0.092  ai_below_band=0.367
+   summarize                          n=28  auroc=0.769  tpr_at_1pct_fpr=0.190  ece=0.382  people_above_band=0.143  people_in_band=0.000  ai_above_band=0.333  ai_below_band=0.238
+   webtext                            n=240  auroc=0.640  tpr_at_1pct_fpr=0.133  ece=0.259  people_above_band=0.092  people_in_band=0.508  ai_above_band=0.217  ai_below_band=0.208
+   wiki                               n=580  auroc=0.974  tpr_at_1pct_fpr=0.804  ece=0.171  people_above_band=0.000  people_in_band=0.177  ai_above_band=0.612  ai_below_band=0.058
+-- people_only
+   college                            n=70  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.027  people_above_band=0.000  people_in_band=0.057
+   cs224n                             n=132  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.016  people_above_band=0.000  people_in_band=0.061
+   ellipse                            n=298  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.068  people_above_band=0.000  people_in_band=0.295
+   persuade                           n=800  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.064  people_above_band=0.000  people_in_band=0.236
+   toefl                              n=63  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.200  people_above_band=0.032  people_in_band=0.571
+   us_students                        n=88  auroc=nan  tpr_at_1pct_fpr=nan  ece=0.014  people_above_band=0.000  people_in_band=0.045
+-- reworded
+   mage_reworded                      n=1852  auroc=0.669  tpr_at_1pct_fpr=0.041  ece=0.636  people_above_band=0.006  people_in_band=0.323  ai_above_band=0.021  ai_below_band=0.457
+   raid_reworded                      n=819  auroc=0.952  tpr_at_1pct_fpr=0.710  ece=0.203  people_above_band=0.000  people_in_band=0.188  ai_above_band=0.496  ai_below_band=0.074
+-- by_length
+   30-59                              n=143  auroc=0.912  tpr_at_1pct_fpr=0.278  ece=0.073  people_above_band=0.032  people_in_band=0.080  ai_above_band=0.500  ai_below_band=0.167
+   60-99                              n=208  auroc=0.989  tpr_at_1pct_fpr=0.600  ece=0.045  people_above_band=0.025  people_in_band=0.104  ai_above_band=0.822  ai_below_band=0.000
+   100-149                            n=454  auroc=0.983  tpr_at_1pct_fpr=0.914  ece=0.022  people_above_band=0.007  people_in_band=0.161  ai_above_band=0.897  ai_below_band=0.023
+   150-249                            n=705  auroc=0.996  tpr_at_1pct_fpr=0.975  ece=0.022  people_above_band=0.000  people_in_band=0.169  ai_above_band=0.932  ai_below_band=0.006
+   250-                               n=472  auroc=0.979  tpr_at_1pct_fpr=0.862  ece=0.031  people_above_band=0.004  people_in_band=0.396  ai_above_band=0.814  ai_below_band=0.012

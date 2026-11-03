@@ -340,3 +340,8 @@ Half precision stores each number in the model with half the memory. We scored 3
 - But on this laptop's processor, half precision took 3.9 seconds per text instead of 0.5.
 
 So half precision is safe for comparing pairs, but only worth using when a pair does not fit in memory at full precision.
+
+### Not done yet
+
+- The bigger pair (Qwen2.5-1.5B and its chat twin) is still downloading. Hugging Face sent it at under 1 MB a second. The base model is nearly done; the chat model has not started.
+- Once both are in `~/.cache/markcheck/models/`, run the two commands in `docs/text-data.md` under "Comparing a bigger model pair". At full precision the pair needs about 12 GB of memory.

@@ -328,3 +328,15 @@ The ship rule now has two more checks. A new fit must catch nearly as much AI te
 - The bigger model pair (Qwen2.5-1.5B and its chat twin) was not tested. Its download from Hugging Face was too slow to finish this session. `scripts/text_compare_pairs.py` is ready. It scores 300 held-out newer-model texts and compares them with the shipped pair.
 - The shipped fit tells the newest models apart from people better than any refit so far. For GPT-4o, the chance an AI text scores higher than a person's is 80 in 100. But it puts few of them above the band. A bigger model pair is the most likely way to improve that.
 - News by people is still the hardest kind of writing. More of it helped. Next, look for another openly licensed set of news by people.
+
+## Text round 9 (2026-11-03)
+
+### Half precision gives the same answers, but is slower here
+
+Half precision stores each number in the model with half the memory. We scored 30 held-out texts with the shipped pair both ways.
+
+- The scores barely moved. The largest change was 0.005, on scores that range over 0.63.
+- Out of 435 pairs of texts, 434 stayed in the same order.
+- But on this laptop's processor, half precision took 3.9 seconds per text instead of 0.5.
+
+So half precision is safe for comparing pairs, but only worth using when a pair does not fit in memory at full precision.

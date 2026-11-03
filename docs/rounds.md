@@ -321,3 +321,10 @@ So it is more cautious, but it is worse at telling the newest AI models apart fr
 ### The ship rule now also checks for hedging
 
 The ship rule now has two more checks. A new fit must catch nearly as much AI text as the old one, at most 2 in 100 fewer. It also must not put many more people's texts in the "can't tell" band, at most 5 in 100 more. We re-ran the rule on the stored round 8 results. The strict-band refit now fails, for both reasons. Tests cover both checks.
+
+### Not done yet, and next
+
+- The shipped fit is still round 3's. Every refit from rounds 7 and 8 is stored in `docs/results/`, but none passed the ship rule.
+- The bigger model pair (Qwen2.5-1.5B and its chat twin) was not tested. Its download from Hugging Face was too slow to finish this session. `scripts/text_compare_pairs.py` is ready. It scores 300 held-out newer-model texts and compares them with the shipped pair.
+- The shipped fit tells the newest models apart from people better than any refit so far. For GPT-4o, the chance an AI text scores higher than a person's is 80 in 100. But it puts few of them above the band. A bigger model pair is the most likely way to improve that.
+- News by people is still the hardest kind of writing. More of it helped. Next, look for another openly licensed set of news by people.

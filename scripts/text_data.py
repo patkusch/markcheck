@@ -105,6 +105,21 @@ def round4_rows() -> list[dict]:
                      "model": r["model"], "kind": r["domain"], "attack": r["attack"],
                      "doc_id": "raid:" + r["source_id"], "decoding": r["decoding"] or "none",
                      "raid_id": r["id"]})
+    # More news written by people, from RAID's unused pool. The round 3 to 7 fits saw very little
+    # news by people, and news was where they wrongly flagged people most. Added last, so the ids
+    # of every earlier row stay the same and their cached scores still match.
+    used = {r["doc_id"] for r in rows}
+    if (DATA / "raid" / "pool.jsonl").exists():
+        for r in load(DATA / "raid" / "pool.jsonl"):
+            if r["model"] != "human" or r["domain"] != "news" or r["attack"] != "none":
+                continue
+            t = normalise(r["generation"])
+            if len(words(t)) < MIN_WORDS or "raid:" + r["source_id"] in used:
+                continue
+            rows.append({"split": "raid", "domain": "news", "label": 0, "text": t, "source": "raid",
+                         "model": "human", "kind": "news", "attack": "none",
+                         "doc_id": "raid:" + r["source_id"], "decoding": "none", "raid_id": r["id"],
+                         "extra": "people_news"})
     return rows
 
 

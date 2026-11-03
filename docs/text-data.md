@@ -59,7 +59,7 @@ python -m markcheck.textcheck.accuracy --write-readme
 ```
 
 - The first step fits on the train side and measures on the texts kept aside. It also refits once per AI model and once per kind of writing, each time leaving that one out.
-- `--compare-with` measures the old fit on the same texts kept aside and applies the ship rule. A new fit ships only if at most 1 in 100 people's texts from HC3, MAGE and RAID are flagged, and no kind of writing has more people's texts flagged than before.
+- `--compare-with` measures the old fit on the same texts kept aside and applies the ship rule. A new fit ships only if at most 1 in 100 people's texts from HC3, MAGE and RAID are flagged, and no kind of writing has more people's texts flagged than before. It must also catch nearly as much AI text as before (no more than 2 in 100 fewer), and must not put many more people's texts in the "can't tell" band (no more than 5 in 100 more). Without those two checks, a fit could pass just by refusing to answer.
 - `--write` saves the new fit, and the numbers the command line shows, to `src/markcheck/data/text_calibration.json`.
 - `--merge` adds the fairness numbers, worked out with that same fit.
 - The last step copies the numbers into the README, so the two cannot drift apart.

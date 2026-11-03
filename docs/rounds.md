@@ -317,3 +317,7 @@ With that band it passes the ship rule. But it passes mainly by saying "can't te
 | Chance a DeepSeek-V3 text scores higher than a person's | 73 in 100 | 65 in 100 |
 
 So it is more cautious, but it is worse at telling the newest AI models apart from people. We did not ship it. A rule that only counts false flags can be passed by refusing to answer. Next time, the ship rule should also check that "can't tell" does not grow much.
+
+### The ship rule now also checks for hedging
+
+The ship rule now has two more checks. A new fit must catch nearly as much AI text as the old one, at most 2 in 100 fewer. It also must not put many more people's texts in the "can't tell" band, at most 5 in 100 more. We re-ran the rule on the stored round 8 results. The strict-band refit now fails, for both reasons. Tests cover both checks.

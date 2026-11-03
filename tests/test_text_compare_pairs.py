@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -18,7 +19,8 @@ def test_auroc_known_values():
 
 
 def test_auroc_needs_both_kinds_of_text():
-    assert cp.auroc([1, 2], [1, 1]) != cp.auroc([1, 2], [1, 1])  # nan
+    assert math.isnan(cp.auroc([1, 2], [1, 1]))
+    assert math.isnan(cp.auroc([1, 2], [0, 0]))
 
 
 def _write(tmp_path, rows):

@@ -46,7 +46,7 @@ class MissingModels(RuntimeError):
 
 class PairScorer:
     def __init__(self, observer: str = DEFAULT_PAIR[0], performer: str = DEFAULT_PAIR[1],
-                 local_only: bool = True, threads: int | None = None):
+                 local_only: bool = True, threads: int | None = None, half: bool = False):
         try:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -67,12 +67,15 @@ class PairScorer:
             torch.set_num_threads(threads)
         self.torch = torch
         self.names = (observer, performer)
+        # Half precision halves the memory a model pair needs, so bigger pairs fit on a laptop.
+        # The shipped pair stays at full precision, which its stored numbers were measured with.
+        dtype = torch.bfloat16 if half else torch.float32
         try:
             self.tok = AutoTokenizer.from_pretrained(observer, local_files_only=local_only)
             self.obs = AutoModelForCausalLM.from_pretrained(observer, local_files_only=local_only,
-                                                            dtype=torch.float32).eval()
+                                                            dtype=dtype).eval()
             self.perf = AutoModelForCausalLM.from_pretrained(performer, local_files_only=local_only,
-                                                             dtype=torch.float32).eval()
+                                                             dtype=dtype).eval()
         except OSError as exc:
             raise MissingModels(
                 "The language models for the text check are not on this computer yet. "

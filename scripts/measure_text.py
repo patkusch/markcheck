@@ -514,6 +514,10 @@ def print_report(res):
 # ---------------------------------------------------------------- comparing two fits
 
 MAX_PEOPLE_FLAGGED = 0.01
+# A fit can flag fewer people just by answering "can't tell" more. So a new fit must also keep
+# catching about as much AI text, and must not put many more people's texts in the band.
+MAX_AI_CAUGHT_DROP = 0.02
+MAX_CANT_TELL_RISE = 0.05
 
 
 def people_rates(res):
@@ -535,7 +539,15 @@ def compare(old, new):
             worse.append(k)
     key = "overall_fit_sources" if "overall_fit_sources" in new else "overall"
     overall_new = new[key].get("people_above_band", 1.0)
-    ok = overall_new <= MAX_PEOPLE_FLAGGED and not worse
+    o_all, n_all = old.get(key, old["overall"]), new[key]
+    hedges = []
+    if o_all.get("ai_above_band") is not None and n_all.get("ai_above_band") is not None \
+            and n_all["ai_above_band"] < o_all["ai_above_band"] - MAX_AI_CAUGHT_DROP:
+        hedges.append("catches less AI text")
+    if o_all.get("people_in_band") is not None and n_all.get("people_in_band") is not None \
+            and n_all["people_in_band"] > o_all["people_in_band"] + MAX_CANT_TELL_RISE:
+        hedges.append("says can't tell more often")
+    ok = overall_new <= MAX_PEOPLE_FLAGGED and not worse and not hedges
     print("-- compare (people's texts above the band: old -> new)")
     print(f"   overall ({key}) {old.get(key, old['overall']).get('people_above_band', float('nan')):.4f} -> "
           f"{overall_new:.4f}   AI caught {old.get(key, old['overall']).get('ai_above_band', float('nan')):.3f} -> "
@@ -543,8 +555,9 @@ def compare(old, new):
     for r in rows:
         print(f"   {r['group'][:40]:40s} n={r['n']:5d}  {r['old'] if r['old'] is None else round(r['old'], 4)}"
               f" -> {r['new'] if r['new'] is None else round(r['new'], 4)}" + ("   WORSE" if r["group"] in worse else ""))
-    print("   ship rule:", "PASS" if ok else f"FAIL (overall {overall_new:.4f}; worse: {', '.join(worse) or 'none'})")
-    return {"ship": ok, "worse": worse, "overall_key": key,
+    print("   ship rule:", "PASS" if ok else f"FAIL (overall {overall_new:.4f}; worse: {', '.join(worse) or 'none'}"
+          + (f"; {', '.join(hedges)}" if hedges else "") + ")")
+    return {"ship": ok, "worse": worse, "hedges": hedges, "overall_key": key,
             "overall_old": old.get(key, old["overall"]), "overall_new": new[key],
             "rows": rows, "old_sets": old["sets"], "old_by_model": old["by_model"],
             "old_reworded": old["reworded"]}

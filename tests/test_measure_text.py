@@ -71,6 +71,22 @@ def test_ship_rule_overall_limit_is_on_the_fitting_sources():
     assert out["ship"] and out["overall_key"] == "overall_fit_sources"
 
 
+def test_ship_rule_fails_when_a_fit_answers_cant_tell_much_more():
+    old = _res(0.008, {"news": 0.02})
+    new = _res(0.004, {"news": 0.01})
+    old["overall"]["people_in_band"], new["overall"]["people_in_band"] = 0.20, 0.40
+    out = mt.compare(old, new)
+    assert not out["ship"] and out["hedges"] == ["says can't tell more often"]
+
+
+def test_ship_rule_fails_when_a_fit_catches_much_less_ai_text():
+    old = _res(0.008, {"news": 0.02})
+    new = _res(0.004, {"news": 0.01})
+    new["overall"]["ai_above_band"] = 0.45
+    out = mt.compare(old, new)
+    assert not out["ship"] and out["hedges"] == ["catches less AI text"]
+
+
 def test_auroc_and_catch_rate_known_values():
     assert mt.auroc([0.9, 0.8, 0.2, 0.1], [1, 1, 0, 0]) == 1.0
     assert mt.auroc([0.5, 0.5], [1, 0]) == 0.5

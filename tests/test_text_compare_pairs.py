@@ -49,3 +49,9 @@ def test_sample_is_evenly_spread_and_repeatable(tmp_path, monkeypatch):
     ids = [r["id"] for r in cp.sample({"beemo"}, 10)]
     assert ids == list(range(0, 100, 10))
     assert ids == [r["id"] for r in cp.sample({"beemo"}, 10)]
+
+
+def test_pair_file_uses_short_name_when_given():
+    from types import SimpleNamespace
+    assert cp.pair_file(SimpleNamespace(name="qwen1.5b", performer="/a/b")).name == "pair_qwen1.5b.jsonl"
+    assert cp.pair_file(SimpleNamespace(name=None, performer="Qwen/X")).name == "pair_Qwen__X.jsonl"

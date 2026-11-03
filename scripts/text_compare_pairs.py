@@ -45,13 +45,19 @@ def auroc(scores: list[float], labels: list[int]) -> float:
     return wins / (len(ai) * len(people))
 
 
+def pair_file(args) -> Path:
+    """Where one pair's scores are cached. --name keeps the file name short for local folders."""
+    name = args.name or args.performer.replace("/", "__")
+    return DATA / f"pair_{name}.jsonl"
+
+
 def score(args) -> None:
     from markcheck.textcheck.scorer import PairScorer
 
-    out = DATA / f"pair_{args.performer.replace('/', '__')}.jsonl"
+    out = pair_file(args)
     done = {json.loads(line)["id"] for line in open(out)} if out.exists() else set()
     rows = sample(set(args.source.split("+")), args.limit)
-    sc = PairScorer(args.observer, args.performer, local_only=False, threads=args.threads)
+    sc = PairScorer(args.observer, args.performer, local_only=False, threads=args.threads, half=args.half)
     t0, n = time.time(), 0
     with open(out, "a") as fh:
         for r in rows:
@@ -69,7 +75,7 @@ def report(args) -> None:
     def load(path: Path) -> dict[int, float]:
         return {d["id"]: d["bino"] for d in map(json.loads, open(path))}
 
-    new = load(DATA / f"pair_{args.performer.replace('/', '__')}.jsonl")
+    new = load(pair_file(args))
     old = load(DATA / f"feat_{SHIPPED.replace('/', '__')}.jsonl")
     rows = [r for r in sample(set(args.source.split("+")), args.limit) if r["id"] in new and r["id"] in old]
     print(f"{len(rows)} texts scored by both pairs")
@@ -95,6 +101,8 @@ def main() -> None:
     ap.add_argument("--source", default="detectrlx+beemo", help="sources joined by +")
     ap.add_argument("--limit", type=int, default=300)
     ap.add_argument("--threads", type=int, default=None)
+    ap.add_argument("--half", action="store_true", help="half precision: half the memory, for bigger pairs")
+    ap.add_argument("--name", default=None, help="short name for the cached scores file")
     ap.add_argument("--report", action="store_true", help="compare with the shipped pair, no scoring")
     args = ap.parse_args()
     report(args) if args.report else score(args)

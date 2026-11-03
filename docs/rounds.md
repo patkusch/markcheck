@@ -281,3 +281,22 @@ We refitted again, giving each AI model the same weight so that the many ChatGPT
 - The held-back test about unseen AI models stays out. It needs a shipped fit that names them.
 - People's news is the main reason refits fail. Next, add more people's news to fitting and try again. The ship rule stays as it is.
 - Newer models (GPT-4o, Gemini 2.5 Flash, DeepSeek-V3) may need a larger observer and performer pair than SmolLM2-360M. Next, test a 1-2 billion parameter pair on the newer-model set, timing it on a laptop.
+
+## Text round 8 (2026-11-03)
+
+### Why news kept failing
+
+Before this round, only 55 news articles by people were in the RAID sample. About half of them went to fitting. So the fit learned what AI news looks like from many examples, but saw very few news articles by people. That is the likely reason news was where it wrongly flagged people most.
+
+### More news by people helped, but not enough to ship
+
+We added 108 more news articles by people from RAID's unused pool. Every earlier text kept its place, so the scores already worked out still match.
+
+| People's news wrongly flagged | Round 3 fit (shipped) | Round 7 refit | Round 8 refit |
+|---|---|---|---|
+| News in the held-out texts | 9 in 100 | 19 in 100 | 15 in 100 |
+| News left out of fitting entirely | — | 46 in 100 | 38 in 100 |
+
+The extra news moved things the right way. But the round 8 fit still flags more people's news than the shipped one. Dialogue, web text and one essay set are also still worse. So it fails the ship rule, and the round 3 fit stays.
+
+Full numbers: `docs/results/round8-refit-more-people-news.txt`.

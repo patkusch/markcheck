@@ -9,3 +9,4 @@ These files hold numbers only. They never hold the texts themselves, because the
 
 The fit that ships is in `src/markcheck/data/text_calibration.json`. A result stored here does not mean it shipped. `docs/rounds.md` says which ones did.
 - `round7b-refit-weighted-by-model.*` is the second round 7 try. Each AI model gets equal weight in fitting. It skips the leave-one-out refits.
+- `round8-refit-more-people-news.*` is the round 8 refit, with 108 more news articles by people added from RAID. The JSON comes from a quick rerun without the leave-one-out refits; the text file has both.

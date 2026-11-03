@@ -1,0 +1,42 @@
+loaded 16511 texts in 2s; train 4045, held out 9749
+band [0.07, 0.87]  n_train 4045 {'hc3': 907, 'mage': 710, 'raid': 2428}
+coef {'bino': -5.735, 'top10': -1.391, 'spread': -0.122, 'fdg': -0.264, 'logppl_perf': -1.874, 'log_tokens': 0.599} intercept 4.541
+overall held-out (no attack): n=5814  auroc=0.927  tpr_at_1pct_fpr=0.524  ece=0.063  people_above_band=0.053  people_in_band=0.472  ai_above_band=0.713  ai_below_band=0.026
+-- sets
+-- by_source
+-- by_model
+-- by_kind
+-- people_only
+-- reworded
+-- leave_one_model_out
+-- leave_one_kind_out
+-- by_length
+
+-- compare (quick rerun against the shipped fit)
+   overall (overall_fit_sources) 0.0031 -> 0.0083   AI caught 0.764 -> 0.815
+   kind: abstracts                          n=   21  0.0 -> 0.0
+   kind: academic                           n=  120  0.0 -> 0.0
+   kind: books                              n=   34  0.0 -> 0.0
+   kind: dialogue                           n=   82  0.0 -> 0.0244   WORSE
+   kind: generation                         n=   64  0.125 -> 0.1406   WORSE
+   kind: medical_qa                         n=   99  0.0101 -> 0.0101
+   kind: news                               n=  298  0.0872 -> 0.1544   WORSE
+   kind: novel                              n=  120  0.0 -> 0.0
+   kind: open_qa                            n=   10  0.3 -> 0.3
+   kind: poetry                             n=   14  0.0 -> 0.0
+   kind: qa                                 n=  329  0.003 -> 0.0061   WORSE
+   kind: recipes                            n=   35  0.0 -> 0.0
+   kind: reddit                             n=   28  0.0 -> 0.0
+   kind: reviews                            n=  112  0.0 -> 0.0
+   kind: rewrite                            n=   56  0.1429 -> 0.1071
+   kind: seo                                n=  120  0.0167 -> 0.0167
+   kind: summarize                          n=    7  0.1429 -> 0.1429
+   kind: webtext                            n=  120  0.0917 -> 0.2   WORSE
+   kind: wiki                               n=  147  0.0 -> 0.0
+   set: college                             n=   70  0.0 -> 0.0
+   set: cs224n                              n=  132  0.0 -> 0.0
+   set: ellipse                             n=  298  0.0 -> 0.0
+   set: persuade                            n=  800  0.0 -> 0.0013   WORSE
+   set: toefl                               n=   63  0.0317 -> 0.0317
+   set: us_students                         n=   88  0.0 -> 0.0
+   ship rule: FAIL (overall 0.0083; worse: kind: dialogue, kind: generation, kind: news, kind: qa, kind: webtext, set: persuade)

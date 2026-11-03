@@ -68,3 +68,16 @@ python -m markcheck.textcheck.accuracy --write-readme
 ## Where past results are kept
 
 Each measuring run worth keeping is saved in `docs/results/`, as a JSON file for scripts and a text file for people. They hold numbers only, never the texts. Save new runs there with `--json-out` and say in `docs/rounds.md` whether the fit shipped.
+
+## Comparing a bigger model pair
+
+`scripts/text_compare_pairs.py` scores a fixed sample of held-out texts with a second model pair. It then compares how well each pair tells AI text from people's.
+
+```
+python scripts/text_compare_pairs.py ~/.cache/markcheck/models/qwen1.5b ~/.cache/markcheck/models/qwen1.5b-instruct --name qwen1.5b --limit 300
+python scripts/text_compare_pairs.py ~/.cache/markcheck/models/qwen1.5b ~/.cache/markcheck/models/qwen1.5b-instruct --name qwen1.5b --limit 300 --report
+```
+
+- The observer and performer can be Hugging Face names or local folders. Local folders help when a download needs to resume.
+- `--name` keeps the cached scores file name short.
+- `--half` halves the memory a pair needs. It gives nearly the same scores but runs much slower on a laptop processor.

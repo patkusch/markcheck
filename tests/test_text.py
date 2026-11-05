@@ -439,3 +439,42 @@ def test_fetch_models_default_is_still_trustmark(monkeypatch, capsys):
     monkeypatch.setitem(sys.modules, "trustmark", None)
     assert fetch_models.main([]) == 2
     assert "trustmark" in capsys.readouterr().out
+
+
+# ---- labels hidden in the text ----
+
+def _label() -> str:
+    from markcheck.textcheck import hidden
+    payload = (24).to_bytes(4, "big") + b"jumb" + bytes(16)
+    framed = hidden.MAGIC + bytes([1]) + len(payload).to_bytes(4, "big") + payload
+    return hidden.MARKER + "".join(chr(0xFE00 + b) if b < 0x10 else chr(0xE0100 + b - 0x10) for b in framed)
+
+
+def test_hidden_label_is_shown_even_when_too_short(fake):
+    code, out, _ = run(["text", SHORT + _label()])
+    assert code == 0
+    assert out.startswith("Hidden in the text:")
+    assert "signed label (C2PA)" in out and "Too short to estimate: 9 words." in out
+
+
+def test_hidden_label_in_json(fake):
+    doc = json.loads(run(["text", SHORT + _label(), "--json"])[1])
+    assert doc["hidden"]["label"]["looks_like_c2pa"] is True
+    assert doc["hidden"]["messages"]
+
+
+def test_plain_text_has_no_hidden_section(fake):
+    code, out, _ = run(["text", SHORT])
+    assert "Hidden in the text" not in out
+    assert json.loads(run(["text", SHORT, "--json"])[1])["hidden"]["label"] is None
+
+
+def test_hidden_label_still_reported_when_models_are_missing(monkeypatch):
+    def boom(*a, **k):
+        raise MissingModels("not here")
+    monkeypatch.setattr(scorer_mod, "PairScorer", boom)
+    long = " ".join(["word"] * 150)
+    code, out, _ = run(["text", long + _label()])
+    assert code == 2 and "signed label (C2PA)" in out
+    doc = json.loads(run(["text", long + _label(), "--json"])[1])
+    assert doc["status"] == "error" and doc["hidden"]["label"] is not None

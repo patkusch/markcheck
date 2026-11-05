@@ -19,6 +19,7 @@ from pathlib import Path
 
 from .. import __version__
 from . import CAVEAT, TextResult, check_text
+from .hidden import HiddenReport, scan
 from .scorer import MissingModels
 
 EPILOG = """\
@@ -102,8 +103,14 @@ def _rate_lines(rates: dict, indent: str = "") -> list[str]:
     return out
 
 
-def render_text(res: TextResult) -> str:
-    lines = [res.headline]
+def render_hidden(hid: HiddenReport | None) -> list[str]:
+    if hid is None or not hid.found_anything:
+        return []
+    return ["Hidden in the text:"] + [f"- {line}" for line in hid.lines()] + [""]
+
+
+def render_text(res: TextResult, hid: HiddenReport | None = None) -> str:
+    lines = render_hidden(hid) + [res.headline]
     if res.status == "scored":
         if res.reasons:
             lines += ["", "Why:"]
@@ -122,8 +129,11 @@ def render_text(res: TextResult) -> str:
     return "\n".join(lines)
 
 
-def to_json(res: TextResult) -> dict:
-    return {"version": __version__, "kind": KIND, **res.to_dict()}
+def to_json(res: TextResult, hid: HiddenReport | None = None) -> dict:
+    out = {"version": __version__, "kind": KIND, **res.to_dict()}
+    if hid is not None:
+        out["hidden"] = {**hid.to_dict(), "messages": hid.lines()}
+    return out
 
 
 def error_json(message: str) -> dict:
@@ -166,29 +176,37 @@ def main(argv: list[str] | None = None) -> int:
     text, problem, note = read_input(args)
     if problem:
         return _fail(problem, args.json)
+    hid = scan(text)
+    if hid.found_anything and not args.json:
+        # Shown first, so it is still seen if the estimate below cannot be made.
+        print("\n".join(render_hidden(hid)))
     try:
-        res = check_text(text)
+        # Score the words only: a label's invisible characters are not part of the writing.
+        res = check_text(hid.visible_text)
     except MissingModels as exc:
-        return _fail(str(exc), args.json)
+        return _fail(str(exc), args.json, hid)
     except (ImportError, OSError):
         return _fail("The language models for the text check could not be loaded. Install the extra "
                      "libraries with: pip install 'markcheck[text]', then fetch the models once with: "
-                     "python -m markcheck.fetch_models --text", args.json)
+                     "python -m markcheck.fetch_models --text", args.json, hid)
     except Exception as exc:  # noqa: BLE001 - one plain line (and JSON) instead of a traceback
-        return _fail(f"the text could not be scored ({type(exc).__name__}: {exc}).", args.json)
+        return _fail(f"the text could not be scored ({type(exc).__name__}: {exc}).", args.json, hid)
     if note:
         res.notes.insert(0, note)
     if args.json:
-        print(json.dumps(to_json(res), indent=2))
+        print(json.dumps(to_json(res, hid), indent=2))
     else:
         print(render_text(res))
     return 0
 
 
-def _fail(message: str, as_json: bool) -> int:
+def _fail(message: str, as_json: bool, hid: HiddenReport | None = None) -> int:
     print(f"markcheck text: {message}", file=sys.stderr)
     if as_json:
-        print(json.dumps(error_json(message), indent=2))
+        out = error_json(message)
+        if hid is not None:
+            out["hidden"] = {**hid.to_dict(), "messages": hid.lines()}
+        print(json.dumps(out, indent=2))
     return 2
 
 

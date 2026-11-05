@@ -42,6 +42,8 @@ markcheck says plainly which of these it can and cannot tell you.
 | A metadata tag saying "made by AI" | The file says so about itself | Who wrote the tag. Tags are plain text that anyone can add or remove |
 | Stable Diffusion's hidden mark | The picture passed through a Stable Diffusion tool that adds the mark | Which person or service made it. The mark is public, so any tool can add it |
 | Adobe TrustMark | The picture carries a TrustMark and its short message | Who made it. The message is usually a pointer to a signed label kept elsewhere |
+| A signed label hidden in a text file | Something attached a C2PA label after the words, as invisible characters | Who signed it. markcheck does not check text label signatures yet. Copy and paste often drops the label |
+| Invisible characters in a text, with no label | The text has characters you cannot see | Anything about who wrote it. They often come from writing tools or copy and paste |
 | No label at all | Nothing | That a person made it. **No label found does not prove a file was made by a person.** |
 | Hidden marks only the maker can read (Google SynthID, OpenAI, Microsoft, Amazon, Anthropic's text mark) | markcheck cannot read these | It points you to each company's own checker instead |
 

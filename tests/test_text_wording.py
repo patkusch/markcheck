@@ -143,3 +143,21 @@ def test_help_wording(capsys):
     with pytest.raises(SystemExit):
         main(["text", "--help"])
     assert hits(capsys.readouterr().out) == []
+
+
+def test_hidden_character_messages_wording():
+    """Every message about labels or invisible characters stays free of judgements and tips."""
+    from markcheck.textcheck import hidden
+    payload = (24).to_bytes(4, "big") + b"jumb" + bytes(16)
+
+    def label(p, declared=None):
+        n = len(p) if declared is None else declared
+        framed = hidden.MAGIC + bytes([1]) + n.to_bytes(4, "big") + p
+        return hidden.MARKER + "".join(chr(0xFE00 + b) if b < 0x10 else chr(0xE0100 + b - 0x10) for b in framed)
+
+    cases = ["a​b‮c\U000E0041", "x" + label(payload), "x" + label(payload[:5], declared=24),
+             "x" + label(b"not a manifest store at all")]
+    for text in cases:
+        lines = hidden.scan(text).lines()
+        assert lines, text
+        assert hits("\n".join(lines)) == []

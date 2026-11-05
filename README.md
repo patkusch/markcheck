@@ -205,12 +205,6 @@ We tried fitting it on more kinds of writing and more AI models. It caught more 
 
 The rule also checks that a new fit does not pass just by saying "can't tell" more often. One try did exactly that, so we added the check.
 
-### Why we have not refitted it yet
-
-We tried fitting it on more kinds of writing and more AI models. It caught more AI text, but it also flagged more people's writing, mostly news. We only ship a new fit if no kind of people's writing gets flagged more often. Every try so far has failed that test, so the 2023 fit stays. `docs/rounds.md` explains each try, and `docs/results/` keeps the full numbers from every run.
-
-The rule also checks that a new fit does not pass just by saying "can't tell" more often. One try did exactly that, so we added the check.
-
 ### What it must not be used for
 
 - It must not be the only basis for any decision about a person: a grade, a job, an accusation or a penalty.

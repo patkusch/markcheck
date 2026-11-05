@@ -13,7 +13,7 @@ Status = Literal["found", "not_found", "skipped", "error"]
 
 # Skip reasons that mean "this check does not apply to this kind of file".
 # Any other skip means a check that could have applied did not run.
-NOT_APPLICABLE = ("Only pictures can carry", "not used in this kind of file", "cannot be read from this file type")
+NOT_APPLICABLE = ("Only pictures can carry", "Only text files can carry", "not used in this kind of file", "cannot be read from this file type")
 
 
 @dataclass

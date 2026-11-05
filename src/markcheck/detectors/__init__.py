@@ -19,7 +19,7 @@ from pathlib import Path
 from ..findings import Finding
 
 # Order matters: this is the order results are printed.
-MODULES = ["c2pa_check", "metadata", "sd_watermark", "trustmark_check"]
+MODULES = ["c2pa_check", "metadata", "sd_watermark", "trustmark_check", "text_label"]
 
 
 def run_all(path: Path, data: bytes, kind: str, options: dict | None = None) -> list[Finding]:

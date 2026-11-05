@@ -98,3 +98,18 @@ These can only be checked through the company's own website or service:
 - github.com/adobe/trustmark
 - github.com/facebookresearch/audioseal
 - github.com/facebookresearch/videoseal
+
+## Update, 2026-11-05: signed labels hidden in plain text
+
+C2PA describes a way to attach a signed label to plain text. It is in Technical Specification 2.4, Annex A.8, "Embedding Manifests into Unstructured Text".
+
+- The label is turned into invisible characters ("variation selectors") and placed after the words.
+- It starts with a zero-width no-break space (U+FEFF), then a header: the letters `C2PATXT`, a version number, and the label's length.
+- markcheck now finds these labels in `markcheck text` and in text files. It reads the header but does not check the signature yet.
+
+What we could and could not confirm:
+
+- The layout comes from two open implementations: the Rust crate `c2pa-unstructured-text` (docs.rs/crate/c2pa-unstructured-text) and the Python package `c2pa-text` (pypi.org/project/c2pa-text). Neither is an official C2PA release.
+- We did not read the normative text of Annex A.8. One source calls the annex informative. **Unverified.**
+- We found no AI company that labels its text this way today. **Unverified.**
+- Copy and paste, and many text editors, may drop these characters. We have not measured how often.

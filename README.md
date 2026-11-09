@@ -128,6 +128,8 @@ It is a separate check from the label checks above.
 First it looks for a signed label (C2PA) hidden after the words, and for other invisible characters, and reports them.
 Then it estimates, from the words alone.
 It reads text saved as UTF-8, or as UTF-16 with its start marker.
+If invisible "tag" characters spell out hidden words, it shows them. Hidden words like these can carry instructions meant for an AI tool.
+To check only for hidden labels and characters, without the estimate, add `--labels-only`. It needs no language models and is instant.
 It asks two small open language models how predictable the words are.
 A language model is a program that guesses the next word; AI text tends to use the words such a program expects.
 

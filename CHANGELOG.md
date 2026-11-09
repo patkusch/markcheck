@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Shows words hidden in invisible tag characters, and leaves flag emoji alone.
+- `markcheck text --labels-only` checks for hidden labels and characters without loading any models.
 - Reads text files saved as UTF-16 or UTF-32, as well as UTF-8.
 - Finds every hidden label in a text, says how many there are, and leaves them all out of the words that get scored.
 - A GitHub job, started by hand, compares a bigger model pair with the shipped one, so no laptop has to do the work.

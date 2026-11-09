@@ -494,3 +494,55 @@ def _explain(store: dict, cr: dict, trust_checked: bool, interim: bool | None = 
         not_proves.append("That the certificate was still in date when it was used.")
 
     return Finding(NAME, LABEL, "found", summary, details=details, proves=proves, does_not_prove=not_proves)
+
+
+def inspect_text_label(payload: bytes, extra_anchors: str | None = None) -> Finding | None:
+    """Read a label that was hidden in plain text (see markcheck.textcheck.hidden).
+
+    The c2pa library can read the label on its own, which checks who signed it and
+    whether its signature holds. It cannot yet tie a text label to the words, so
+    "unchanged since signing" is never claimed for text. Returns None if the library
+    is missing or cannot read the label at all.
+    """
+    try:
+        import c2pa
+        reader = c2pa.Reader.try_create("application/c2pa", io.BytesIO(payload), None, _context(extra_anchors))
+        if reader is None:
+            return None
+        with reader:
+            store = json.loads(reader.json())
+            try:
+                cr = json.loads(reader.crjson())
+            except Exception:
+                cr = {}
+    except Exception:
+        return None
+    # The label's check against the content fails here only because the words were not given to it.
+    res = (store.get("validation_results") or {}).get("activeManifest") or {}
+    if res.get("failure"):
+        res["failure"] = [f for f in res["failure"] if not FILE_HASH_CODES.match(f.get("code", ""))]
+    if store.get("validation_status"):
+        store["validation_status"] = [s for s in store["validation_status"]
+                                      if not FILE_HASH_CODES.match(s.get("code", ""))]
+    f = _explain(store, cr, trust_checked=TRUST_LIST.is_file() or bool(extra_anchors))
+    signer = f.details.get("signed_by", "an unnamed signer")
+    f.details["changed_since_signing"] = "not checked: markcheck cannot yet tie a text label to the words"
+    sig = f.details.get("signature_valid")
+    if sig == "yes":
+        f.summary = (f"A signed label (C2PA) is hidden in this text, signed by {signer}. "
+                     f"markcheck has not checked that the words are unchanged since signing.")
+    elif sig == "no":
+        f.summary = f"A signed label (C2PA) naming {signer} is hidden in this text, but its signature does not check out."
+    else:
+        f.summary = f"A signed label (C2PA) naming {signer} is hidden in this text; markcheck could not confirm its signature."
+    says = f.details.get("says_made_with_ai", "")
+    if says.startswith("yes: it says this was made"):
+        f.summary += " The label says it was made with AI."
+    elif says.startswith("yes"):
+        f.summary += " The label says AI-made material was mixed in."
+    f.proves = [p for p in f.proves if "unchanged" not in p and "changed after signing" not in p]
+    if sig == "yes":
+        f.proves.append(f"Whoever holds the signing key for the certificate named '{signer}' signed this label.")
+    f.does_not_prove = [d for d in f.does_not_prove if "unchanged" not in d] + [
+        "That the words are unchanged since signing: markcheck does not check that for text yet."]
+    return f

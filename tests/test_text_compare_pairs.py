@@ -45,12 +45,14 @@ def test_sample_keeps_only_held_out_unreworded_long_texts(tmp_path, monkeypatch)
 
 def test_sample_is_evenly_spread_and_repeatable(tmp_path, monkeypatch):
     long = " ".join(["word"] * 120)
+    # AI texts first, then people's, the way the data file is laid out.
     _write(tmp_path, [{"id": i, "source": "beemo", "attack": "none", "split": "newmodels",
-                       "text": long, "label": i % 2} for i in range(100)])
+                       "text": long, "label": 1 if i < 50 else 0} for i in range(100)])
     monkeypatch.setattr(cp, "DATA", tmp_path)
-    ids = [r["id"] for r in cp.sample({"beemo"}, 10)]
-    assert ids == list(range(0, 100, 10))
-    assert ids == [r["id"] for r in cp.sample({"beemo"}, 10)]
+    got = cp.sample({"beemo"}, 10)
+    assert [r["label"] for r in got] == [1, 0] * 5  # alternates, so a partial run has both
+    assert [r["id"] for r in got] == [r["id"] for r in cp.sample({"beemo"}, 10)]
+    assert len({r["id"] for r in got}) == 10
 
 
 def test_pair_file_uses_short_name_when_given():

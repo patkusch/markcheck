@@ -22,7 +22,7 @@ SHIPPED = "HuggingFaceTB/SmolLM2-360M-Instruct"
 
 
 def sample(sources: set[str], limit: int, min_words: int = 100) -> list[dict]:
-    """An evenly spread, repeatable sample of held-out, unreworded texts."""
+    """An evenly spread, repeatable sample of held-out, unreworded texts: half AI, half people's."""
     rows = []
     for line in open(DATA / "splits.jsonl"):
         r = json.loads(line)
@@ -31,8 +31,15 @@ def sample(sources: set[str], limit: int, min_words: int = 100) -> list[dict]:
         if len(r["text"].split()) < min_words:
             continue
         rows.append(r)
-    step = max(1, len(rows) // limit)
-    return rows[::step][:limit]
+    # Alternate AI and people's texts, so a run stopped part way still has both to compare.
+    ai = [r for r in rows if r["label"] == 1]
+    people = [r for r in rows if r["label"] == 0]
+    ai = ai[::max(1, len(ai) // (limit - limit // 2))][:limit - limit // 2]
+    people = people[::max(1, len(people) // (limit // 2 or 1))][:limit // 2]
+    out = []
+    for i in range(max(len(ai), len(people))):
+        out += [r for r in (ai[i] if i < len(ai) else None, people[i] if i < len(people) else None) if r]
+    return out[:limit]
 
 
 def auroc(scores: list[float], labels: list[int]) -> float:

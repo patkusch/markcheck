@@ -156,7 +156,7 @@ def test_hidden_character_messages_wording():
         return hidden.MARKER + "".join(chr(0xFE00 + b) if b < 0x10 else chr(0xE0100 + b - 0x10) for b in framed)
 
     cases = ["a​b‮c\U000E0041", "x" + label(payload), "x" + label(payload[:5], declared=24),
-             "x" + label(b"not a manifest store at all")]
+             "x" + label(b"not a manifest store at all"), "x" + label(payload) + " y" + label(payload)]
     for text in cases:
         lines = hidden.scan(text).lines()
         assert lines, text

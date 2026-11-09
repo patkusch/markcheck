@@ -82,3 +82,13 @@ python scripts/text_compare_pairs.py ~/.cache/markcheck/models/qwen1.5b ~/.cache
 - The observer and performer can be Hugging Face names or local folders. Local folders help when a download needs to resume.
 - `--name` keeps the cached scores file name short.
 - `--half` halves the memory a pair needs. It gives nearly the same scores but runs much slower on a laptop processor.
+
+## Running the comparison on GitHub instead of a laptop
+
+Scoring with a bigger pair keeps a laptop's processor fully busy for hours. The job "Compare a bigger model pair" does the same work on GitHub's machines instead.
+
+- Start it from the repo's Actions tab ("Run workflow"), or with `gh workflow run bigger-pair.yml -f limit=300`.
+- It fetches the newer-model texts, scores a balanced sample with the shipped pair and with the bigger one, and compares them.
+- The comparison shows on the run's page. The numbers are also kept as a file named `bigger-pair-results`.
+- 300 texts take about an hour with the Qwen2.5-1.5B pair.
+- Model files and texts are kept between runs, so a second run starts faster.

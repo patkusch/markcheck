@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Finds signed labels (C2PA) hidden as invisible characters after the words of a text, in `markcheck text` and in text files. It does not check their signatures yet.
+- Finds signed labels (C2PA) hidden as invisible characters after the words of a text, in `markcheck text` and in text files. It reads who signed them and whether the signature holds, but not yet whether the words changed since.
 - Counts other invisible characters in a text, such as zero-width spaces, and says they prove nothing on their own.
 - `markcheck text` estimates the chance a text was AI-written, with reasons, and says how often it is wrong.
 - The ship rule for a new text fit now also checks that it keeps catching AI text and does not just say "can't tell" more often.

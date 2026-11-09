@@ -345,3 +345,19 @@ So half precision is safe for comparing pairs, but only worth using when a pair 
 
 - The bigger pair (Qwen2.5-1.5B and its chat twin) is still downloading. Hugging Face sent it at under 1 MB a second. The base model is nearly done; the chat model has not started.
 - Once both are in `~/.cache/markcheck/models/`, run the two commands in `docs/text-data.md` under "Comparing a bigger model pair". At full precision the pair needs about 12 GB of memory.
+
+## Round 10 (2026-11-09)
+
+### Labels hidden in text: now with signatures
+
+- markcheck reads a C2PA label hidden after a text's words on its own, with the c2pa library.
+- It reports who signed the label, what the label says about AI, and whether the signature holds.
+- It never says the words are unchanged since signing. The c2pa library cannot yet tie a label to plain text.
+- Two test files carry a real signed label: one good and one with a broken signature. The tests check that markcheck reads both correctly.
+
+### Running the bigger model pair
+
+- At full precision the Qwen2.5-1.5B pair needs about 12 GB of memory. On this 17 GB laptop, with other work running, it fell back on the disk and slowed to a crawl. We stopped it after 130 texts.
+- Those 130 texts were all AI-written. The sample took texts in file order, and the AI texts come first. With no people's texts there was nothing to compare against.
+- The sample now alternates AI and people's texts, so a run stopped part way can still be compared.
+- A second run uses half precision, which fits in memory.

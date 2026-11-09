@@ -11,6 +11,8 @@ Manifests into Unstructured Text"), as written down by the open implementations
 c2pa-unstructured-text (Rust) and c2pa-text (Python). We have not read the
 normative text of the annex itself.
 
+When the C2PA library is installed, the label's signature is read too.
+
 This module only reads. It never changes the text.
 """
 from __future__ import annotations
@@ -104,6 +106,7 @@ class HiddenReport:
     label: TextLabel | None
     invisible: dict[str, int]
     visible_text: str        # the text without the label's characters, for scoring the words
+    signature: object = None  # a Finding from reading the label's signature, when that worked
 
     @property
     def found_anything(self) -> bool:
@@ -113,7 +116,9 @@ class HiddenReport:
         out = []
         if self.label:
             size = f"{self.label.payload_length:,} bytes"
-            if self.label.complete and self.label.looks_like_c2pa:
+            if self.signature is not None:
+                out.append(self.signature.summary)
+            elif self.label.complete and self.label.looks_like_c2pa:
                 out.append(f"A signed label (C2PA) is attached to this text, hidden as invisible characters "
                            f"after the words ({size}). markcheck does not check its signature yet, so it "
                            f"cannot say who signed it or whether the text changed since.")
@@ -136,10 +141,17 @@ class HiddenReport:
         return out
 
     def to_dict(self) -> dict:
-        return {"label": self.label.to_dict() if self.label else None, "invisible_characters": self.invisible}
+        label = self.label.to_dict() if self.label else None
+        if label is not None and self.signature is not None:
+            label["signature"] = self.signature.details
+        return {"label": label, "invisible_characters": self.invisible}
 
 
-def scan(text: str) -> HiddenReport:
+def scan(text: str, read_signature: bool = True) -> HiddenReport:
     label = find_text_label(text)
     visible = text if label is None else text[:label.start] + text[label.end:]
-    return HiddenReport(label=label, invisible=invisible_counts(text), visible_text=visible)
+    signature = None
+    if read_signature and label is not None and label.complete and label.looks_like_c2pa:
+        from ..detectors.c2pa_check import inspect_text_label
+        signature = inspect_text_label(label.payload)
+    return HiddenReport(label=label, invisible=invisible_counts(text), visible_text=visible, signature=signature)

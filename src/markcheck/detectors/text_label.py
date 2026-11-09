@@ -28,6 +28,10 @@ def check(path, data, kind, options) -> list[Finding]:
         return [Finding(NAME, LABEL, "skipped", "This text file is not UTF-8, so it was not read.")]
     rep = scan(text)
     details = rep.to_dict()
+    if rep.signature is not None:
+        f = rep.signature
+        f.detector, f.label, f.details = NAME, LABEL, {**f.details, **details}
+        return [f]
     if rep.label and rep.label.complete and rep.label.looks_like_c2pa:
         return [Finding(NAME, LABEL, "found", rep.lines()[0], details,
                         proves=["something attached a C2PA label to this text"],

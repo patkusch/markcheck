@@ -19,6 +19,7 @@ from pathlib import Path
 
 from .. import __version__
 from . import CAVEAT, TextResult, check_text
+from .encoding import decode_text
 from .hidden import HiddenReport, scan
 from .scorer import MissingModels
 
@@ -46,7 +47,7 @@ def _plain_os_error(exc: OSError) -> str:
 
 def _decode(raw: bytes, cut: bool) -> str:
     try:
-        return raw.decode("utf-8-sig")
+        return decode_text(raw)
     except UnicodeDecodeError as exc:
         if cut and exc.start >= len(raw) - 3:  # the 1 MB cut fell inside one character
             return raw[:exc.start].decode("utf-8-sig")
@@ -71,7 +72,7 @@ def read_input(args, stdin=None) -> tuple[str | None, str | None, str | None]:
         except UnicodeDecodeError:
             text = None
         if text is None or "\0" in text:  # NUL bytes mean a binary file, even if it decodes
-            return None, f"could not read {args.file}: it is not plain text saved as UTF-8.", None
+            return None, f"could not read {args.file}: it is not plain text saved as UTF-8 (or UTF-16 with its start marker).", None
         note = CUT_NOTE if cut else None
     elif args.text == "-" or (args.text is None and stdin is not None and not stdin.isatty()):
         if stdin is None:
@@ -165,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("text", nargs="?", help="the text to check, or '-' to read it from standard input")
-    ap.add_argument("--file", help="read the text from this file (plain text, UTF-8)")
+    ap.add_argument("--file", help="read the text from this file (plain text: UTF-8, or UTF-16 with its start marker)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON instead of text")
     ap.want_json = "--json" in argv
     try:

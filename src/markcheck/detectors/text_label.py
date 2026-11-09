@@ -7,6 +7,7 @@ changes the file, and it does not check the label's signature yet.
 from __future__ import annotations
 
 from ..findings import Finding
+from ..textcheck.encoding import decode_text
 from ..textcheck.hidden import scan
 
 NAME = "text_label"
@@ -23,9 +24,9 @@ def check(path, data, kind, options) -> list[Finding]:
     if kind != "text":
         return [Finding(NAME, LABEL, "skipped", "Only text files can carry this label.")]
     try:
-        text = data.decode("utf-8")
+        text = decode_text(data)
     except UnicodeDecodeError:
-        return [Finding(NAME, LABEL, "skipped", "This text file is not UTF-8, so it was not read.")]
+        return [Finding(NAME, LABEL, "skipped", "This text file is not UTF-8 or marked UTF-16, so it was not read.")]
     rep = scan(text)
     details = rep.to_dict()
     if rep.signature is not None:

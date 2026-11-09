@@ -254,7 +254,7 @@ def test_missing_file_is_an_error(fake, tmp_path):
 
 def test_non_utf8_file_is_an_error(fake, tmp_path):
     p = tmp_path / "x.txt"
-    p.write_bytes(b"\xff\xfe\x00bad")
+    p.write_bytes(b"\x80\x81bad")  # not UTF-8, and no UTF-16 marker
     code, _, err = run(["text", "--file", str(p)])
     assert code == 2 and "UTF-8" in err
 

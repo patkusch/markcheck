@@ -52,9 +52,18 @@ class TextLabel:
                 "looks_like_c2pa": self.looks_like_c2pa}
 
 
-def find_text_label(text: str) -> TextLabel | None:
-    """The first C2PA text label in `text`, or None."""
-    pos = text.find(MARKER)
+def find_text_labels(text: str) -> list[TextLabel]:
+    """Every C2PA text label in `text`, in order. Pasting labelled texts together can give several."""
+    out, start = [], 0
+    while (lab := find_text_label(text, start)) is not None:
+        out.append(lab)
+        start = lab.end
+    return out
+
+
+def find_text_label(text: str, start: int = 0) -> TextLabel | None:
+    """The first C2PA text label in `text` at or after `start`, or None."""
+    pos = text.find(MARKER, start)
     while pos != -1:
         run = bytearray()
         i = pos + 1
@@ -105,8 +114,11 @@ def invisible_counts(text: str) -> dict[str, int]:
 class HiddenReport:
     label: TextLabel | None
     invisible: dict[str, int]
-    visible_text: str        # the text without the label's characters, for scoring the words
+    visible_text: str        # the text without the labels' characters, for scoring the words
+    label_count: int = 0
     signature: object = None  # a Finding from reading the label's signature, when that worked
+
+    _label_selectors: int = 0  # how many variation selectors all the labels use together
 
     @property
     def found_anything(self) -> bool:
@@ -128,11 +140,14 @@ class HiddenReport:
             else:
                 out.append(f"Something with a signed label's (C2PA) header is attached to this text ({size}), "
                            f"but its contents do not look like a C2PA label.")
+        if self.label_count > 1:
+            out.append(f"This text holds {self.label_count} hidden labels, perhaps from pasting labelled "
+                       f"texts together. Only the first is described here.")
         rest = dict(self.invisible)
         if self.label:
-            # The label's own characters are not news; only count what is left over.
-            rest["variation selectors"] = rest.get("variation selectors", 0) - (self.label.end - self.label.start - 1)
-            rest["zero-width spaces and joiners"] = rest.get("zero-width spaces and joiners", 0) - 1
+            # The labels' own characters are not news; only count what is left over.
+            rest["variation selectors"] = rest.get("variation selectors", 0) - self._label_selectors
+            rest["zero-width spaces and joiners"] = rest.get("zero-width spaces and joiners", 0) - self.label_count
             rest = {k: v for k, v in rest.items() if v > 0}
         if rest:
             parts = ", ".join(f"{v} {k}" for k, v in sorted(rest.items()))
@@ -144,14 +159,19 @@ class HiddenReport:
         label = self.label.to_dict() if self.label else None
         if label is not None and self.signature is not None:
             label["signature"] = self.signature.details
-        return {"label": label, "invisible_characters": self.invisible}
+        return {"label": label, "label_count": self.label_count, "invisible_characters": self.invisible}
 
 
 def scan(text: str, read_signature: bool = True) -> HiddenReport:
-    label = find_text_label(text)
-    visible = text if label is None else text[:label.start] + text[label.end:]
+    labels = find_text_labels(text)
+    label = labels[0] if labels else None
+    visible, cut = text, 0
+    for lab in labels:
+        visible = visible[:lab.start - cut] + visible[lab.end - cut:]
+        cut += lab.end - lab.start
     signature = None
     if read_signature and label is not None and label.complete and label.looks_like_c2pa:
         from ..detectors.c2pa_check import inspect_text_label
         signature = inspect_text_label(label.payload)
-    return HiddenReport(label=label, invisible=invisible_counts(text), visible_text=visible, signature=signature)
+    return HiddenReport(label=label, invisible=invisible_counts(text), visible_text=visible, signature=signature,
+                        label_count=len(labels), _label_selectors=sum(lab.end - lab.start - 1 for lab in labels))

@@ -66,3 +66,20 @@ def test_wording_never_judges_the_writer():
     text = " ".join(rep.lines()).lower()
     for banned in ("human-written", "proof", "cheating", "authentic", "plagiar"):
         assert banned not in text
+
+
+def test_two_pasted_labels_are_both_found_and_removed_from_the_words():
+    text = "First part." + encode(C2PA_LIKE) + " Second part." + encode(C2PA_LIKE)
+    rep = hidden.scan(text, read_signature=False)
+    assert rep.label_count == 2
+    assert rep.visible_text == "First part. Second part."
+    lines = rep.lines()
+    assert any("holds 2 hidden labels" in line for line in lines)
+    assert not any("Invisible characters found" in line for line in lines)  # all belong to the labels
+
+
+def test_one_label_says_nothing_about_a_count():
+    rep = hidden.scan("Words." + encode(C2PA_LIKE), read_signature=False)
+    assert rep.label_count == 1
+    assert not any("hidden labels" in line for line in rep.lines())
+    assert rep.to_dict()["label_count"] == 1

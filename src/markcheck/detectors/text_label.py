@@ -30,7 +30,9 @@ def check(path, data, kind, options) -> list[Finding]:
     details = rep.to_dict()
     if rep.signature is not None:
         f = rep.signature
-        f.detector, f.label, f.details = NAME, LABEL, {**f.details, **details}
+        # Plain, flat facts: the signature details plus the label's size, not the raw scan.
+        f.detector, f.label = NAME, LABEL
+        f.details = {**f.details, "label_size": f"{rep.label.payload_length:,} bytes"}
         return [f]
     if rep.label and rep.label.complete and rep.label.looks_like_c2pa:
         return [Finding(NAME, LABEL, "found", rep.lines()[0], details,

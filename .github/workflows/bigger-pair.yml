@@ -38,8 +38,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -e '.[text]' requests pyarrow
-      - name: Fetch the newer-model texts (DetectRL-X and Beemo, both MIT)
-        run: python -I scripts/text_fetch_newmodels.py
+      - name: Keep the model files between runs
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/huggingface
+          key: hf-pairs-${{ inputs.observer }}-v1
+      - name: Keep the newer-model texts between runs
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/markcheck/textdata/newmodels
+          key: newmodels-rows-v1
+      - name: Fetch the newer-model texts (DetectRL-X and Beemo, both MIT), unless kept from last time
+        run: test -s "$ROWS" || python -I scripts/text_fetch_newmodels.py
       - name: Score with the shipped pair
         run: |
           python scripts/text_compare_pairs.py HuggingFaceTB/SmolLM2-360M HuggingFaceTB/SmolLM2-360M-Instruct \
@@ -52,7 +62,7 @@ jobs:
         run: |
           mkdir -p results
           python scripts/text_compare_pairs.py x x --rows $ROWS --limit ${{ inputs.limit }} \
-            --name bigger --against shipped --report | tee results/report.txt
+            --name bigger --against shipped --report --json-out results/report.json | tee results/report.txt
           {
             echo "## Shipped pair vs ${{ inputs.observer }} pair"
             echo

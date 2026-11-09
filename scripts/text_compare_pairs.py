@@ -6,6 +6,16 @@ Scoring every text with a bigger pair takes hours on a laptop. This scores a
 fixed, evenly spread sample from the named sources instead. It writes
 ~/.cache/markcheck/textdata/pair_<performer>.jsonl (resumes if stopped).
 Compare the result with the shipped pair using --report.
+
+On a machine without the full data set (such as a GitHub runner), pass --rows with
+the newer-model file from scripts/text_fetch_newmodels.py, score both pairs, and
+compare them with --report --against:
+
+    python scripts/text_compare_pairs.py HuggingFaceTB/SmolLM2-360M HuggingFaceTB/SmolLM2-360M-Instruct \
+        --rows ~/.cache/markcheck/textdata/newmodels/rows.jsonl --name shipped
+    python scripts/text_compare_pairs.py Qwen/Qwen2.5-1.5B Qwen/Qwen2.5-1.5B-Instruct \
+        --rows ~/.cache/markcheck/textdata/newmodels/rows.jsonl --name qwen1.5b
+    python scripts/text_compare_pairs.py x x --rows ... --name qwen1.5b --against shipped --report
 """
 from __future__ import annotations
 
@@ -21,11 +31,27 @@ DATA = Path.home() / ".cache" / "markcheck" / "textdata"
 SHIPPED = "HuggingFaceTB/SmolLM2-360M-Instruct"
 
 
-def sample(sources: set[str], limit: int, min_words: int = 100) -> list[dict]:
+def read_rows(path: Path | None) -> list[dict]:
+    """The full data set, or a plain rows file such as the newer-model one.
+
+    Rows from a plain file are all held out and unreworded, and get an id from their own fields.
+    """
+    if path is None:
+        return [json.loads(line) for line in open(DATA / "splits.jsonl")]
+    rows = []
+    for line in open(path):
+        r = json.loads(line)
+        r.setdefault("split", "newmodels")
+        r.setdefault("attack", "none")
+        r.setdefault("id", f"{r['doc_id']}:{r['label']}:{r.get('model', '')}")
+        rows.append(r)
+    return rows
+
+
+def sample(sources: set[str], limit: int, min_words: int = 100, path: Path | None = None) -> list[dict]:
     """An evenly spread, repeatable sample of held-out, unreworded texts: half AI, half people's."""
     rows = []
-    for line in open(DATA / "splits.jsonl"):
-        r = json.loads(line)
+    for r in read_rows(path):
         if r["split"] == "train" or r["source"] not in sources or r["attack"] != "none":
             continue
         if len(r["text"].split()) < min_words:
@@ -63,7 +89,7 @@ def score(args) -> None:
 
     out = pair_file(args)
     done = {json.loads(line)["id"] for line in open(out)} if out.exists() else set()
-    rows = sample(set(args.source.split("+")), args.limit)
+    rows = sample(set(args.source.split("+")), args.limit, path=args.rows)
     sc = PairScorer(args.observer, args.performer, local_only=False, threads=args.threads, half=args.half)
     t0, n = time.time(), 0
     with open(out, "a") as fh:
@@ -83,8 +109,9 @@ def report(args) -> None:
         return {d["id"]: d["bino"] for d in map(json.loads, open(path))}
 
     new = load(pair_file(args))
-    old = load(DATA / f"feat_{SHIPPED.replace('/', '__')}.jsonl")
-    rows = [r for r in sample(set(args.source.split("+")), args.limit) if r["id"] in new and r["id"] in old]
+    old = load(DATA / (f"pair_{args.against}.jsonl" if args.against else f"feat_{SHIPPED.replace('/', '__')}.jsonl"))
+    rows = [r for r in sample(set(args.source.split("+")), args.limit, path=args.rows)
+            if r["id"] in new and r["id"] in old]
     print(f"{len(rows)} texts scored by both pairs")
     groups: dict[str, list[dict]] = {"all": rows}
     people = [r for r in rows if r["label"] == 0]
@@ -110,6 +137,10 @@ def main() -> None:
     ap.add_argument("--threads", type=int, default=None)
     ap.add_argument("--half", action="store_true", help="half precision: half the memory, for bigger pairs")
     ap.add_argument("--name", default=None, help="short name for the cached scores file")
+    ap.add_argument("--rows", type=Path, default=None,
+                    help="read texts from this rows file instead of the full data set")
+    ap.add_argument("--against", default=None,
+                    help="with --report: compare with this pair's cached scores (its --name)")
     ap.add_argument("--report", action="store_true", help="compare with the shipped pair, no scoring")
     args = ap.parse_args()
     report(args) if args.report else score(args)

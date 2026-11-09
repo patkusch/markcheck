@@ -125,7 +125,9 @@ Hidden files, and tool folders such as `.git`, are skipped.
 
 `markcheck text` looks at a piece of writing and estimates the chance that it was AI-written.
 It is a separate check from the label checks above.
-It does not look for a label.
+First it looks for a signed label (C2PA) hidden after the words, and for other invisible characters, and reports them.
+Then it estimates, from the words alone.
+It reads text saved as UTF-8, or as UTF-16 with its start marker.
 It asks two small open language models how predictable the words are.
 A language model is a program that guesses the next word; AI text tends to use the words such a program expects.
 

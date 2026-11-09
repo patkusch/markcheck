@@ -478,3 +478,21 @@ def test_hidden_label_still_reported_when_models_are_missing(monkeypatch):
     assert code == 2 and "signed label (C2PA)" in out
     doc = json.loads(run(["text", long + _label(), "--json"])[1])
     assert doc["status"] == "error" and doc["hidden"]["label"] is not None
+
+
+# ---- --labels-only ----
+
+def test_labels_only_never_loads_the_models(monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("models must not load")
+    monkeypatch.setattr(scorer_mod, "PairScorer", boom)
+    long = " ".join(["word"] * 150)
+    code, out, _ = run(["text", long, "--labels-only"])
+    assert code == 0 and out.startswith("No hidden label")
+    code, out, _ = run(["text", long + _label(), "--labels-only"])
+    assert code == 1 and "signed label (C2PA)" in out and "estimate" not in out.lower()
+
+
+def test_labels_only_json(monkeypatch):
+    doc = json.loads(run(["text", SHORT + _label(), "--labels-only", "--json"])[1])
+    assert doc["kind"] == "text_labels" and doc["label"]["looks_like_c2pa"] and doc["messages"]

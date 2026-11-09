@@ -26,6 +26,8 @@ from .scorer import MissingModels
 EPILOG = """\
 exit codes:
   0  an estimate was handled (a number, or "too short to estimate")
+     with --labels-only: no hidden label found
+  1  with --labels-only: a hidden label was found
   2  error: no text, a file that could not be read, or the language models are missing
 
 The text check needs extra libraries and two small language models:
@@ -168,6 +170,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("text", nargs="?", help="the text to check, or '-' to read it from standard input")
     ap.add_argument("--file", help="read the text from this file (plain text: UTF-8, or UTF-16 with its start marker)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON instead of text")
+    ap.add_argument("--labels-only", action="store_true",
+                    help="only look for hidden labels and invisible characters; skip the estimate "
+                         "(no language models needed, so it is instant)")
     ap.want_json = "--json" in argv
     try:
         args = ap.parse_args(argv)
@@ -178,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
     if problem:
         return _fail(problem, args.json)
     hid = scan(text)
+    if args.labels_only:
+        return _labels_only(hid, args.json)
     if hid.found_anything and not args.json:
         # Shown first, so it is still seen if the estimate below cannot be made.
         print("\n".join(render_hidden(hid)))
@@ -199,6 +206,19 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(render_text(res))
     return 0
+
+
+def _labels_only(hid: HiddenReport, as_json: bool) -> int:
+    """Report hidden labels and invisible characters only. Exit 1 if a label was found, else 0."""
+    found = hid.label is not None
+    if as_json:
+        print(json.dumps({"version": __version__, "kind": "text_labels", **hid.to_dict(),
+                          "messages": hid.lines()}, indent=2))
+    elif hid.found_anything:
+        print("\n".join(render_hidden(hid)).rstrip())
+    else:
+        print("No hidden label or invisible characters found. That says nothing about who wrote it.")
+    return 1 if found else 0
 
 
 def _fail(message: str, as_json: bool, hid: HiddenReport | None = None) -> int:

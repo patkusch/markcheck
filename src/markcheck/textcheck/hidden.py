@@ -90,6 +90,43 @@ NAMED = {
 }
 
 
+BLACK_FLAG = 0x1F3F4  # flags such as England's are this emoji plus tag characters, ending in U+E007F
+TAG_END = 0xE007F
+MAX_SHOWN = 300
+
+
+def _flag_positions(text: str) -> set[int]:
+    """Positions of tag characters that are part of a flag emoji, which is their ordinary use."""
+    out: set[int] = set()
+    i = 0
+    while i < len(text):
+        if ord(text[i]) == BLACK_FLAG:
+            j = i + 1
+            while j < len(text) and 0xE0020 <= ord(text[j]) <= 0xE007E:
+                j += 1
+            if j < len(text) and ord(text[j]) == TAG_END and j > i + 1:
+                out.update(range(i + 1, j + 1))
+                i = j
+        i += 1
+    return out
+
+
+def hidden_tag_text(text: str) -> str:
+    """Text spelled out in invisible "tag" characters, outside flag emoji. Runs are joined with " | "."""
+    flags = _flag_positions(text)
+    runs, cur = [], []
+    for i, ch in enumerate(text):
+        cp = ord(ch)
+        if 0xE0020 <= cp <= 0xE007E and i not in flags:
+            cur.append(chr(cp - 0xE0000))
+        elif cur:
+            runs.append("".join(cur))
+            cur = []
+    if cur:
+        runs.append("".join(cur))
+    return " | ".join(r for r in runs if r.strip())
+
+
 def invisible_counts(text: str) -> dict[str, int]:
     """How many invisible characters of each kind the text has."""
     counts: dict[str, int] = {}
@@ -97,8 +134,11 @@ def invisible_counts(text: str) -> dict[str, int]:
     def add(kind: str):
         counts[kind] = counts.get(kind, 0) + 1
 
-    for ch in text:
+    flags = _flag_positions(text)
+    for i, ch in enumerate(text):
         cp = ord(ch)
+        if i in flags:
+            continue  # part of a flag emoji
         if vs_to_byte(ch) is not None:
             add("variation selectors")
         elif 0xE0000 <= cp <= 0xE007F:
@@ -119,6 +159,7 @@ class HiddenReport:
     signature: object = None  # a Finding from reading the label's signature, when that worked
 
     _label_selectors: int = 0  # how many variation selectors all the labels use together
+    tag_text: str = ""         # text spelled out in invisible tag characters
 
     @property
     def found_anything(self) -> bool:
@@ -149,6 +190,10 @@ class HiddenReport:
             rest["variation selectors"] = rest.get("variation selectors", 0) - self._label_selectors
             rest["zero-width spaces and joiners"] = rest.get("zero-width spaces and joiners", 0) - self.label_count
             rest = {k: v for k, v in rest.items() if v > 0}
+        if self.tag_text:
+            shown = self.tag_text if len(self.tag_text) <= MAX_SHOWN else self.tag_text[:MAX_SHOWN] + "..."
+            out.append(f"Invisible \"tag\" characters spell out hidden text: \"{shown}\". Hidden text like "
+                       f"this can carry instructions meant for an AI tool rather than for the reader.")
         if rest:
             parts = ", ".join(f"{v} {k}" for k, v in sorted(rest.items()))
             out.append(f"Invisible characters found: {parts}. These can come from a label, a writing tool, "
@@ -159,7 +204,8 @@ class HiddenReport:
         label = self.label.to_dict() if self.label else None
         if label is not None and self.signature is not None:
             label["signature"] = self.signature.details
-        return {"label": label, "label_count": self.label_count, "invisible_characters": self.invisible}
+        return {"label": label, "label_count": self.label_count, "invisible_characters": self.invisible,
+                "hidden_tag_text": self.tag_text or None}
 
 
 def scan(text: str, read_signature: bool = True) -> HiddenReport:
@@ -174,4 +220,5 @@ def scan(text: str, read_signature: bool = True) -> HiddenReport:
         from ..detectors.c2pa_check import inspect_text_label
         signature = inspect_text_label(label.payload)
     return HiddenReport(label=label, invisible=invisible_counts(text), visible_text=visible, signature=signature,
-                        label_count=len(labels), _label_selectors=sum(lab.end - lab.start - 1 for lab in labels))
+                        label_count=len(labels), _label_selectors=sum(lab.end - lab.start - 1 for lab in labels),
+                        tag_text=hidden_tag_text(text))

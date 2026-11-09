@@ -105,7 +105,9 @@ C2PA describes a way to attach a signed label to plain text. It is in Technical 
 
 - The label is turned into invisible characters ("variation selectors") and placed after the words.
 - It starts with a zero-width no-break space (U+FEFF), then a header: the letters `C2PATXT`, a version number, and the label's length.
-- markcheck now finds these labels in `markcheck text` and in text files. It reads the header but does not check the signature yet.
+- markcheck now finds these labels in `markcheck text` and in text files.
+- Since 2026-11-09 it also reads the label on its own with the c2pa library. That shows who signed it, what it says about AI, and whether the signature holds.
+- The c2pa library (version 0.38) cannot yet tie a label to plain text. So markcheck never says the words are unchanged since signing.
 
 What we could and could not confirm:
 

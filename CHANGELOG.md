@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Reads text files saved as UTF-16 or UTF-32, as well as UTF-8.
+- Finds every hidden label in a text, says how many there are, and leaves them all out of the words that get scored.
+- A GitHub job, started by hand, compares a bigger model pair with the shipped one, so no laptop has to do the work.
 - Finds signed labels (C2PA) hidden as invisible characters after the words of a text, in `markcheck text` and in text files. It reads who signed them and whether the signature holds, but not yet whether the words changed since.
 - Counts other invisible characters in a text, such as zero-width spaces, and says they prove nothing on their own.
 - `markcheck text` estimates the chance a text was AI-written, with reasons, and says how often it is wrong.

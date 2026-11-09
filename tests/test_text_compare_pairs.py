@@ -91,7 +91,9 @@ def test_report_against_another_pair(tmp_path, monkeypatch, capsys):
                 bino = (0.5 if labels[i] else 1.5) if good else 1.0
                 fh.write(json.dumps({"id": i, "bino": bino}) + "\n")
     cp.report(SimpleNamespace(name="big", performer="x", against="shipped", source="detectrlx",
-                              limit=4, rows=rows))
+                              limit=4, rows=rows, json_out=str(tmp_path / "r.json")))
     out = capsys.readouterr().out
-    assert "4 texts scored by both pairs" in out
+    assert "4 texts scored by both pairs (2 AI, 2 people's)" in out
+    saved = json.loads((tmp_path / "r.json").read_text())
+    assert saved["groups"]["all"] == {"n": 4, "shipped_pair": 0.5, "new_pair": 1.0}
     assert "shipped pair 0.500  new pair 1.000" in out

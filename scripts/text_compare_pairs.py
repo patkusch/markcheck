@@ -112,8 +112,10 @@ def report(args) -> None:
     old = load(DATA / (f"pair_{args.against}.jsonl" if args.against else f"feat_{SHIPPED.replace('/', '__')}.jsonl"))
     rows = [r for r in sample(set(args.source.split("+")), args.limit, path=args.rows)
             if r["id"] in new and r["id"] in old]
-    print(f"{len(rows)} texts scored by both pairs")
+    n_ai = sum(r["label"] == 1 for r in rows)
+    print(f"{len(rows)} texts scored by both pairs ({n_ai} AI, {len(rows) - n_ai} people's)")
     groups: dict[str, list[dict]] = {"all": rows}
+    results: dict[str, dict] = {}
     people = [r for r in rows if r["label"] == 0]
     for r in rows:
         if r["label"] == 1:
@@ -126,6 +128,10 @@ def report(args) -> None:
         a_old = auroc([-old[r["id"]] for r in rs], labels)
         a_new = auroc([-new[r["id"]] for r in rs], labels)
         print(f"  {name:28s} n={len(rs):4d}  shipped pair {a_old:.3f}  new pair {a_new:.3f}")
+        results[name] = {"n": len(rs), "shipped_pair": a_old, "new_pair": a_new}
+    if args.json_out:
+        Path(args.json_out).write_text(json.dumps(
+            {"texts": len(rows), "ai": n_ai, "people": len(rows) - n_ai, "groups": results}, indent=2))
 
 
 def main() -> None:
@@ -142,6 +148,7 @@ def main() -> None:
     ap.add_argument("--against", default=None,
                     help="with --report: compare with this pair's cached scores (its --name)")
     ap.add_argument("--report", action="store_true", help="compare with the shipped pair, no scoring")
+    ap.add_argument("--json-out", default=None, help="with --report: also save the numbers to this JSON file")
     args = ap.parse_args()
     report(args) if args.report else score(args)
 

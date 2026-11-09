@@ -78,6 +78,7 @@ python scripts/text_compare_pairs.py ~/.cache/markcheck/models/qwen1.5b ~/.cache
 python scripts/text_compare_pairs.py ~/.cache/markcheck/models/qwen1.5b ~/.cache/markcheck/models/qwen1.5b-instruct --name qwen1.5b --limit 300 --report
 ```
 
+- To download a bigger pair that can resume if the line is slow, run `bash scripts/text_fetch_pair.sh Qwen/Qwen2.5-1.5B Qwen/Qwen2.5-1.5B-Instruct`. It saves each model under `~/.cache/markcheck/models/`.
 - The observer and performer can be Hugging Face names or local folders. Local folders help when a download needs to resume.
 - `--name` keeps the cached scores file name short.
 - `--half` halves the memory a pair needs. It gives nearly the same scores but runs much slower on a laptop processor.

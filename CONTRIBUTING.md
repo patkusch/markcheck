@@ -4,7 +4,7 @@ Thanks for helping. Small fixes and clearer wording are both welcome.
 
 ## Run the tests
 
-You need Python 3.10 or newer. The full install pulls in PyTorch, so it is large.
+You need Python 3.11 or newer. The full install pulls in PyTorch, so it is large.
 
 ```bash
 pip install -e '.[all,dev]'

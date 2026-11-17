@@ -1,5 +1,7 @@
 # markcheck
 
+[![ci](https://github.com/patkusch/markcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/patkusch/markcheck/actions/workflows/ci.yml)
+
 ## What it does
 
 markcheck looks inside your files for labels that say a file was made or changed with AI.

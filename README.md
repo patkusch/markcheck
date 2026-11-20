@@ -250,3 +250,7 @@ It does not help anyone change a text to get a different estimate.
 ## Licence
 
 MIT. Test files from other sources keep their own licences, listed next to them.
+
+---
+
+[Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
